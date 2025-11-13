@@ -1,0 +1,1453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Enter the Metaverse - An immersive 3D web experience showcasing the future of virtual worlds">
+    <meta property="og:title" content="Metaverse Experience | The Future is Here">
+    <meta property="og:description" content="Experience an award-winning 3D interactive journey into the metaverse">
+    <title>Enter the Metaverse | Award-Winning 3D Experience</title>
+
+    <style>
+        /* ===== GLOBAL RESET & BASE STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-teal: #49c5b6;
+            --color-black: #000000;
+            --color-white: #ffffff;
+            --color-gray: #1a1a1a;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: var(--color-black);
+            color: var(--color-white);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--color-black);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.8s ease;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 80px;
+            height: 80px;
+            border: 3px solid var(--color-teal);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        #loading-text {
+            margin-top: 30px;
+            color: var(--color-teal);
+            font-size: 1.2rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        #loading-progress {
+            margin-top: 10px;
+            color: var(--color-white);
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        /* ===== THREE.JS CANVAS CONTAINER ===== */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        canvas {
+            display: block;
+            cursor: none;
+        }
+
+        /* Custom cursor */
+        #custom-cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--color-teal);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.2s ease, width 0.2s ease, height 0.2s ease;
+            mix-blend-mode: difference;
+        }
+
+        #custom-cursor.hover {
+            width: 50px;
+            height: 50px;
+            background: rgba(73, 197, 182, 0.2);
+        }
+
+        /* ===== CONTENT SECTIONS ===== */
+        .content {
+            position: relative;
+            z-index: 2;
+        }
+
+        section {
+            min-height: 100vh;
+            padding: 100px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* ===== HERO SECTION ===== */
+        #hero {
+            text-align: center;
+            background: transparent;
+        }
+
+        .hero-title {
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 0.5s;
+        }
+
+        .hero-title .line {
+            display: block;
+            overflow: hidden;
+        }
+
+        .hero-title .line span {
+            display: inline-block;
+            animation: slideUp 1s ease forwards;
+        }
+
+        .teal {
+            color: var(--color-teal);
+            text-shadow: 0 0 40px rgba(73, 197, 182, 0.6);
+            animation: glow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(73, 197, 182, 0.4); }
+            to { text-shadow: 0 0 60px rgba(73, 197, 182, 0.8); }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 3vw, 1.8rem);
+            font-weight: 300;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 1s;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeInUp 1s ease forwards 1.5s;
+            text-align: center;
+        }
+
+        .scroll-indicator span {
+            display: block;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            color: var(--color-teal);
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .scroll-line {
+            width: 2px;
+            height: 50px;
+            background: var(--color-teal);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scroll-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 20px;
+            background: var(--color-white);
+            animation: scrollDown 2s ease-in-out infinite;
+        }
+
+        @keyframes scrollDown {
+            0%, 100% { transform: translateY(-20px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(50px); }
+        }
+
+        /* ===== CONTENT BOX ===== */
+        .content-box {
+            max-width: 900px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+        }
+
+        .content-box.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .content-box h2 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            margin-bottom: 30px;
+            line-height: 1.1;
+        }
+
+        .content-box h3 {
+            font-size: clamp(2rem, 5vw, 3.5rem);
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--color-teal);
+        }
+
+        .content-box p {
+            font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.85);
+            font-weight: 300;
+        }
+
+        /* ===== SECTION SPECIFIC STYLES ===== */
+        #intro {
+            text-align: center;
+        }
+
+        .feature {
+            text-align: left;
+        }
+
+        .feature:nth-child(odd) .content-box {
+            margin-left: auto;
+            text-align: right;
+        }
+
+        .feature:nth-child(even) .content-box {
+            margin-right: auto;
+            text-align: left;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 30px;
+        }
+
+        .feature-list li {
+            font-size: clamp(1rem, 2.5vw, 1.3rem);
+            padding: 15px 0;
+            border-bottom: 1px solid rgba(73, 197, 182, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .feature-list li:hover {
+            padding-left: 20px;
+            color: var(--color-teal);
+            border-bottom-color: var(--color-teal);
+        }
+
+        /* ===== INTERACTIVE DEMO SECTION ===== */
+        #demo {
+            text-align: center;
+        }
+
+        .instruction {
+            font-size: 1.2rem;
+            color: var(--color-teal);
+            margin-top: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== TECHNOLOGY SECTION ===== */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+            margin-top: 50px;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .tech-item {
+            padding: 30px;
+            background: rgba(73, 197, 182, 0.05);
+            border: 1px solid rgba(73, 197, 182, 0.3);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tech-item:hover {
+            background: rgba(73, 197, 182, 0.1);
+            border-color: var(--color-teal);
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(73, 197, 182, 0.3);
+        }
+
+        /* ===== FOOTER / CTA SECTION ===== */
+        #footer {
+            text-align: center;
+        }
+
+        .cta-button {
+            margin-top: 50px;
+            padding: 25px 60px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            background: var(--color-teal);
+            color: var(--color-black);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px rgba(73, 197, 182, 0.5);
+            pointer-events: all;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--color-white);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .cta-button:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 60px rgba(73, 197, 182, 1);
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .social-links {
+            margin-top: 50px;
+            display: flex;
+            gap: 30px;
+            justify-content: center;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            border: 2px solid var(--color-teal);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--color-teal);
+            text-decoration: none;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+            pointer-events: all;
+        }
+
+        .social-link:hover {
+            background: var(--color-teal);
+            color: var(--color-black);
+            transform: scale(1.2) rotate(360deg);
+        }
+
+        /* ===== MUTE BUTTON ===== */
+        #mute-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 100;
+            background: rgba(73, 197, 182, 0.2);
+            border: 2px solid var(--color-teal);
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            pointer-events: all;
+            backdrop-filter: blur(10px);
+        }
+
+        #mute-btn:hover {
+            transform: scale(1.1);
+            background: rgba(73, 197, 182, 0.4);
+            box-shadow: 0 0 30px rgba(73, 197, 182, 0.6);
+        }
+
+        #mute-btn.muted {
+            opacity: 0.5;
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 1024px) {
+            section {
+                padding: 80px 30px;
+            }
+
+            .tech-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding: 60px 20px;
+            }
+
+            .hero-title {
+                font-size: 3rem;
+            }
+
+            .content-box {
+                text-align: center !important;
+            }
+
+            .feature .content-box {
+                margin: 0 auto !important;
+                text-align: center !important;
+            }
+
+            .tech-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+
+            .cta-button {
+                padding: 20px 40px;
+                font-size: 1.1rem;
+            }
+
+            #custom-cursor {
+                display: none;
+            }
+        }
+
+        /* ===== REDUCED MOTION ===== */
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* ===== PERFORMANCE MONITOR ===== */
+        #stats {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <div id="loading-text">Loading Experience</div>
+        <div id="loading-progress">0%</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="custom-cursor"></div>
+
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Mute Button -->
+    <button id="mute-btn" class="muted" title="Toggle Sound">🔇</button>
+
+    <!-- Page Content -->
+    <div class="content">
+        <!-- SECTION 1: HERO -->
+        <section id="hero">
+            <h1 class="hero-title">
+                <div class="line"><span>ENTER THE</span></div>
+                <div class="line"><span class="teal">METAVERSE</span></div>
+            </h1>
+            <p class="hero-subtitle">Where Reality Meets Imagination</p>
+            <div class="scroll-indicator">
+                <span>Scroll to Explore</span>
+                <div class="scroll-line"></div>
+            </div>
+        </section>
+
+        <!-- SECTION 2: INTRODUCTION -->
+        <section id="intro">
+            <div class="content-box">
+                <h2>A New <span class="teal">Dimension</span></h2>
+                <p>
+                    Step into a world where boundaries dissolve and possibilities are infinite.
+                    The metaverse is not just a place—it's an experience, a revolution, a new way of being.
+                    Here, imagination becomes reality, and reality becomes limitless.
+                </p>
+                <p>
+                    Connect, create, and explore in ways never before possible. This is the future of human interaction,
+                    commerce, entertainment, and existence itself.
+                </p>
+            </div>
+        </section>
+
+        <!-- SECTION 3: FEATURE 1 -->
+        <section id="feature-1" class="feature">
+            <div class="content-box">
+                <h3>Immersive Worlds</h3>
+                <p>
+                    Experience environments that transcend physical limitations. Each world is a canvas
+                    for creativity, collaboration, and connection.
+                </p>
+                <ul class="feature-list">
+                    <li>✓ Photorealistic 3D environments</li>
+                    <li>✓ Real-time global collaboration</li>
+                    <li>✓ Infinite customization possibilities</li>
+                    <li>✓ Cross-platform accessibility</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 4: FEATURE 2 -->
+        <section id="feature-2" class="feature">
+            <div class="content-box">
+                <h3>Digital Identity</h3>
+                <p>
+                    Express yourself in ways never before possible. Your avatar is more than a representation—
+                    it's an extension of who you are and who you want to become.
+                </p>
+                <ul class="feature-list">
+                    <li>✓ Fully customizable avatars</li>
+                    <li>✓ Persistent digital identity</li>
+                    <li>✓ Wearable NFT fashion</li>
+                    <li>✓ Reputation and achievement systems</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 5: FEATURE 3 -->
+        <section id="feature-3" class="feature">
+            <div class="content-box">
+                <h3>Virtual Economy</h3>
+                <p>
+                    Own, trade, and create value in a thriving digital ecosystem. The metaverse economy
+                    is powered by blockchain technology and limited only by imagination.
+                </p>
+                <ul class="feature-list">
+                    <li>✓ True digital ownership</li>
+                    <li>✓ Decentralized marketplace</li>
+                    <li>✓ Creator monetization tools</li>
+                    <li>✓ Interoperable assets</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- SECTION 6: INTERACTIVE DEMO -->
+        <section id="demo">
+            <div class="content-box">
+                <h2>Experience the <span class="teal">Magic</span></h2>
+                <p class="instruction">Move your cursor to interact with the portal</p>
+            </div>
+        </section>
+
+        <!-- SECTION 7: TECHNOLOGY -->
+        <section id="tech">
+            <div class="content-box">
+                <h2>Powered by <span class="teal">Innovation</span></h2>
+                <p>
+                    Built on cutting-edge technologies that enable seamless, immersive experiences
+                    across all devices and platforms.
+                </p>
+                <div class="tech-grid">
+                    <div class="tech-item">WebGL</div>
+                    <div class="tech-item">Three.js</div>
+                    <div class="tech-item">Blockchain</div>
+                    <div class="tech-item">Web Audio</div>
+                    <div class="tech-item">AI/ML</div>
+                    <div class="tech-item">5G Ready</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION 8: FOOTER / CTA -->
+        <section id="footer">
+            <div class="content-box">
+                <h2>Ready to <span class="teal">Begin?</span></h2>
+                <p>
+                    Join millions of pioneers already exploring the next evolution of the internet.
+                    Your journey into the metaverse starts now.
+                </p>
+                <button class="cta-button"><span>ENTER THE METAVERSE</span></button>
+                <div class="social-links">
+                    <a href="#" class="social-link" title="Twitter">𝕏</a>
+                    <a href="#" class="social-link" title="Discord">D</a>
+                    <a href="#" class="social-link" title="Instagram">IG</a>
+                    <a href="#" class="social-link" title="GitHub">GH</a>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r150/three.min.js"></script>
+
+    <script>
+        // ===== GLOBAL VARIABLES =====
+        let scene, camera, renderer;
+        let portal, particles, particleSystem;
+        let networkNodes = [], networkLines = [];
+        let floatingIslands = [];
+        let holographicPanels = [];
+        let energyField;
+        let interactiveSphere;
+        let techVisualization;
+
+        let scrollY = 0;
+        let scrollVelocity = 0;
+        let lastScrollY = 0;
+        let scrollProgress = 0;
+        let currentSection = 0;
+
+        let time = 0;
+        let baseSpeed = 1;
+        let currentSpeed = 1;
+
+        let mouseX = 0, mouseY = 0;
+        let targetMouseX = 0, targetMouseY = 0;
+
+        let isMuted = true;
+        let buzzSound;
+
+        let isLoaded = false;
+        let loadingProgress = 0;
+
+        // Device detection
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const isTablet = isMobile && Math.min(window.innerWidth, window.innerHeight) >= 768;
+
+        // Quality settings based on device
+        let particleCount = isMobile ? 500 : (isTablet ? 2000 : 10000);
+        let enablePostProcessing = !isMobile;
+        let enableShadows = !isMobile;
+
+        // ===== INITIALIZATION =====
+        function init() {
+            console.log('Initializing Metaverse Experience...');
+
+            // Create scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.Fog(0x000000, 10, 50);
+
+            // Create camera
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(0, 0, isMobile ? 20 : 15);
+
+            // Create renderer
+            renderer = new THREE.WebGLRenderer({
+                alpha: true,
+                antialias: !isMobile,
+                powerPreference: 'high-performance'
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, isMobile ? 1 : 2));
+            renderer.shadowMap.enabled = enableShadows;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Setup lighting
+            setupLighting();
+
+            // Create all 3D objects
+            createPortal();
+            createParticleSystem();
+            createNetworkVisualization();
+            createFloatingIslands();
+            createHolographicPanels();
+            createEnergyField();
+            createInteractiveSphere();
+            createTechVisualization();
+
+            // Setup audio
+            setupAudio();
+
+            // Event listeners
+            window.addEventListener('scroll', onScroll, { passive: true });
+            window.addEventListener('resize', onWindowResize);
+            document.addEventListener('mousemove', onMouseMove);
+            document.getElementById('mute-btn').addEventListener('click', toggleMute);
+
+            // CTA button interaction
+            document.querySelector('.cta-button').addEventListener('click', () => {
+                alert('Welcome to the Metaverse! 🚀');
+            });
+
+            // Intersection Observer for content animations
+            setupIntersectionObserver();
+
+            // Custom cursor
+            if (!isMobile) {
+                setupCustomCursor();
+            }
+
+            // Simulate loading
+            simulateLoading();
+
+            // Start animation loop
+            animate();
+        }
+
+        // ===== LIGHTING SETUP =====
+        function setupLighting() {
+            // Ambient light
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+
+            // Main directional light
+            const directionalLight = new THREE.DirectionalLight(0x49c5b6, 1.5);
+            directionalLight.position.set(10, 10, 10);
+            if (enableShadows) {
+                directionalLight.castShadow = true;
+                directionalLight.shadow.mapSize.width = 2048;
+                directionalLight.shadow.mapSize.height = 2048;
+            }
+            scene.add(directionalLight);
+
+            // Accent lights
+            const pointLight1 = new THREE.PointLight(0x49c5b6, 1, 50);
+            pointLight1.position.set(-10, 5, -10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xffffff, 0.5, 50);
+            pointLight2.position.set(10, -5, 10);
+            scene.add(pointLight2);
+        }
+
+        // ===== CREATE PORTAL (HERO SECTION) =====
+        function createPortal() {
+            const group = new THREE.Group();
+
+            // Main torus
+            const torusGeometry = new THREE.TorusGeometry(3, 0.8, 32, 100);
+            const torusMaterial = new THREE.MeshStandardMaterial({
+                color: 0x49c5b6,
+                emissive: 0x49c5b6,
+                emissiveIntensity: 0.5,
+                metalness: 0.8,
+                roughness: 0.2
+            });
+            const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+            if (enableShadows) torus.castShadow = true;
+            group.add(torus);
+
+            // Inner rings
+            for (let i = 0; i < 3; i++) {
+                const ringGeometry = new THREE.TorusGeometry(2.5 - i * 0.5, 0.1, 16, 100);
+                const ringMaterial = new THREE.MeshBasicMaterial({
+                    color: 0x49c5b6,
+                    transparent: true,
+                    opacity: 0.3 - i * 0.1
+                });
+                const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+                ring.rotation.x = Math.PI / 2;
+                ring.position.z = i * 0.2;
+                group.add(ring);
+            }
+
+            // Glow effect
+            const glowGeometry = new THREE.TorusGeometry(3.2, 1, 32, 100);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0x49c5b6,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            group.add(glow);
+
+            portal = group;
+            portal.scale.set(isMobile ? 0.6 : 1, isMobile ? 0.6 : 1, isMobile ? 0.6 : 1);
+            scene.add(portal);
+        }
+
+        // ===== CREATE PARTICLE SYSTEM =====
+        function createParticleSystem() {
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+            const sizes = new Float32Array(particleCount);
+
+            for (let i = 0; i < particleCount; i++) {
+                // Random positions in a sphere
+                const radius = 15 + Math.random() * 20;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+
+                // Teal to white color gradient
+                const mixFactor = Math.random();
+                colors[i * 3] = 0.29 + (1 - 0.29) * mixFactor;
+                colors[i * 3 + 1] = 0.77 + (1 - 0.77) * mixFactor;
+                colors[i * 3 + 2] = 0.71 + (1 - 0.71) * mixFactor;
+
+                sizes[i] = Math.random() * 2 + 0.5;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+            geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+            const material = new THREE.PointsMaterial({
+                size: isMobile ? 1 : 2,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8,
+                blending: THREE.AdditiveBlending,
+                sizeAttenuation: true
+            });
+
+            particleSystem = new THREE.Points(geometry, material);
+            scene.add(particleSystem);
+        }
+
+        // ===== CREATE NETWORK VISUALIZATION (INTRO SECTION) =====
+        function createNetworkVisualization() {
+            const nodeCount = isMobile ? 15 : 30;
+            const nodeGeometry = new THREE.SphereGeometry(0.2, 16, 16);
+            const nodeMaterial = new THREE.MeshStandardMaterial({
+                color: 0x49c5b6,
+                emissive: 0x49c5b6,
+                emissiveIntensity: 0.5
+            });
+
+            // Create nodes
+            for (let i = 0; i < nodeCount; i++) {
+                const node = new THREE.Mesh(nodeGeometry, nodeMaterial);
+                node.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 20
+                );
+                node.userData.originalPosition = node.position.clone();
+                node.userData.offset = Math.random() * Math.PI * 2;
+                node.visible = false;
+                networkNodes.push(node);
+                scene.add(node);
+            }
+
+            // Create connections
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x49c5b6,
+                transparent: true,
+                opacity: 0.2
+            });
+
+            for (let i = 0; i < nodeCount; i++) {
+                for (let j = i + 1; j < nodeCount; j++) {
+                    const distance = networkNodes[i].position.distanceTo(networkNodes[j].position);
+                    if (distance < 8) {
+                        const geometry = new THREE.BufferGeometry().setFromPoints([
+                            networkNodes[i].position,
+                            networkNodes[j].position
+                        ]);
+                        const line = new THREE.Line(geometry, lineMaterial);
+                        line.visible = false;
+                        networkLines.push(line);
+                        scene.add(line);
+                    }
+                }
+            }
+        }
+
+        // ===== CREATE FLOATING ISLANDS (FEATURE 1) =====
+        function createFloatingIslands() {
+            const islandCount = isMobile ? 3 : 5;
+
+            for (let i = 0; i < islandCount; i++) {
+                const geometry = new THREE.DodecahedronGeometry(1 + Math.random(), 0);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x49c5b6,
+                    emissive: 0x49c5b6,
+                    emissiveIntensity: 0.3,
+                    metalness: 0.5,
+                    roughness: 0.5,
+                    wireframe: true
+                });
+                const island = new THREE.Mesh(geometry, material);
+                island.position.set(
+                    (Math.random() - 0.5) * 15,
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10
+                );
+                island.userData.offset = Math.random() * Math.PI * 2;
+                island.userData.speed = 0.5 + Math.random() * 0.5;
+                island.visible = false;
+                floatingIslands.push(island);
+                scene.add(island);
+            }
+        }
+
+        // ===== CREATE HOLOGRAPHIC PANELS (FEATURE 2) =====
+        function createHolographicPanels() {
+            const panelCount = isMobile ? 3 : 6;
+
+            for (let i = 0; i < panelCount; i++) {
+                const geometry = new THREE.PlaneGeometry(3, 4);
+                const material = new THREE.MeshStandardMaterial({
+                    color: 0x49c5b6,
+                    transparent: true,
+                    opacity: 0.15,
+                    side: THREE.DoubleSide,
+                    emissive: 0x49c5b6,
+                    emissiveIntensity: 0.2
+                });
+                const panel = new THREE.Mesh(geometry, material);
+                panel.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 10,
+                    (Math.random() - 0.5) * 10
+                );
+                panel.rotation.y = Math.random() * Math.PI;
+                panel.userData.offset = Math.random() * Math.PI * 2;
+                panel.visible = false;
+                holographicPanels.push(panel);
+                scene.add(panel);
+            }
+        }
+
+        // ===== CREATE ENERGY FIELD (FEATURE 3) =====
+        function createEnergyField() {
+            const geometry = new THREE.IcosahedronGeometry(4, 1);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x49c5b6,
+                emissive: 0x49c5b6,
+                emissiveIntensity: 0.5,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.6
+            });
+            energyField = new THREE.Mesh(geometry, material);
+            energyField.visible = false;
+            scene.add(energyField);
+        }
+
+        // ===== CREATE INTERACTIVE SPHERE (DEMO SECTION) =====
+        function createInteractiveSphere() {
+            const geometry = new THREE.IcosahedronGeometry(5, 2);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0x49c5b6,
+                emissive: 0x49c5b6,
+                emissiveIntensity: 0.3,
+                metalness: 0.9,
+                roughness: 0.1,
+                transparent: true,
+                opacity: 0.8
+            });
+            interactiveSphere = new THREE.Mesh(geometry, material);
+            interactiveSphere.visible = false;
+            if (enableShadows) interactiveSphere.castShadow = true;
+            scene.add(interactiveSphere);
+        }
+
+        // ===== CREATE TECH VISUALIZATION (TECH SECTION) =====
+        function createTechVisualization() {
+            const group = new THREE.Group();
+
+            // Create helix structure
+            const helixPoints = [];
+            const radius = 3;
+            const height = 10;
+            const turns = 3;
+            const pointsPerTurn = isMobile ? 20 : 40;
+
+            for (let i = 0; i < turns * pointsPerTurn; i++) {
+                const angle = (i / pointsPerTurn) * Math.PI * 2;
+                const y = (i / (turns * pointsPerTurn)) * height - height / 2;
+                helixPoints.push(new THREE.Vector3(
+                    Math.cos(angle) * radius,
+                    y,
+                    Math.sin(angle) * radius
+                ));
+            }
+
+            // Create spheres along helix
+            const sphereGeometry = new THREE.SphereGeometry(0.15, 8, 8);
+            const sphereMaterial = new THREE.MeshStandardMaterial({
+                color: 0x49c5b6,
+                emissive: 0x49c5b6,
+                emissiveIntensity: 0.5
+            });
+
+            helixPoints.forEach((point, index) => {
+                if (index % 3 === 0) {
+                    const sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+                    sphere.position.copy(point);
+                    group.add(sphere);
+                }
+            });
+
+            // Create connecting lines
+            const lineGeometry = new THREE.BufferGeometry().setFromPoints(helixPoints);
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0x49c5b6,
+                transparent: true,
+                opacity: 0.4
+            });
+            const line = new THREE.Line(lineGeometry, lineMaterial);
+            group.add(line);
+
+            techVisualization = group;
+            techVisualization.visible = false;
+            scene.add(techVisualization);
+        }
+
+        // ===== AUDIO SETUP =====
+        function setupAudio() {
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const audioContext = new AudioContext();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sine';
+                oscillator.frequency.value = 150;
+                gainNode.gain.value = 0;
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.start();
+
+                buzzSound = { oscillator, gainNode, audioContext };
+            } catch (e) {
+                console.log('Web Audio API not supported');
+            }
+        }
+
+        // ===== TOGGLE MUTE =====
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+
+            if (buzzSound) {
+                if (isMuted) {
+                    buzzSound.gainNode.gain.value = 0;
+                    btn.textContent = '🔇';
+                    btn.classList.add('muted');
+                } else {
+                    if (buzzSound.audioContext.state === 'suspended') {
+                        buzzSound.audioContext.resume();
+                    }
+                    buzzSound.gainNode.gain.value = 0.02;
+                    btn.textContent = '🔊';
+                    btn.classList.remove('muted');
+                }
+            }
+        }
+
+        // ===== SCROLL EVENT HANDLER =====
+        function onScroll() {
+            scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            scrollVelocity = scrollY - lastScrollY;
+            lastScrollY = scrollY;
+
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            scrollProgress = Math.min(scrollY / maxScroll, 1);
+
+            // Determine current section (0-7 for 8 sections)
+            currentSection = Math.floor(scrollProgress * 8);
+
+            // Adjust animation speed based on scroll velocity
+            if (scrollVelocity > 0) {
+                currentSpeed = baseSpeed + Math.abs(scrollVelocity) * 0.05;
+            } else {
+                currentSpeed += (baseSpeed - currentSpeed) * 0.1;
+            }
+            currentSpeed = Math.max(0.5, Math.min(currentSpeed, 3));
+
+            // Update audio frequency
+            if (buzzSound && !isMuted) {
+                buzzSound.oscillator.frequency.value = 150 + currentSpeed * 20;
+            }
+        }
+
+        // ===== MOUSE MOVE HANDLER =====
+        function onMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        // ===== WINDOW RESIZE HANDLER =====
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ===== INTERSECTION OBSERVER FOR CONTENT =====
+        function setupIntersectionObserver() {
+            const options = {
+                threshold: 0.2
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, options);
+
+            document.querySelectorAll('.content-box').forEach(box => {
+                observer.observe(box);
+            });
+        }
+
+        // ===== CUSTOM CURSOR =====
+        function setupCustomCursor() {
+            const cursor = document.getElementById('custom-cursor');
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+
+            // Hover effects
+            const interactiveElements = document.querySelectorAll('button, a, .tech-item');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
+        }
+
+        // ===== SIMULATE LOADING =====
+        function simulateLoading() {
+            const loadingEl = document.getElementById('loading');
+            const progressEl = document.getElementById('loading-progress');
+
+            const interval = setInterval(() => {
+                loadingProgress += Math.random() * 15;
+                if (loadingProgress >= 100) {
+                    loadingProgress = 100;
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        loadingEl.classList.add('hidden');
+                        isLoaded = true;
+                    }, 500);
+                }
+                progressEl.textContent = Math.floor(loadingProgress) + '%';
+            }, 200);
+        }
+
+        // ===== UPDATE SCENE BASED ON SCROLL SECTION =====
+        function updateSceneForSection() {
+            // Hide all section-specific objects
+            networkNodes.forEach(node => node.visible = false);
+            networkLines.forEach(line => line.visible = false);
+            floatingIslands.forEach(island => island.visible = false);
+            holographicPanels.forEach(panel => panel.visible = false);
+            if (energyField) energyField.visible = false;
+            if (interactiveSphere) interactiveSphere.visible = false;
+            if (techVisualization) techVisualization.visible = false;
+
+            // Section 0: Hero - Portal visible
+            if (currentSection === 0) {
+                portal.visible = true;
+                const zoomFactor = Math.min(scrollProgress * 10, 1);
+                portal.scale.setScalar((isMobile ? 0.6 : 1) * (1 + zoomFactor * 0.3));
+            }
+
+            // Section 1: Intro - Network visualization
+            else if (currentSection === 1) {
+                portal.visible = true;
+                portal.scale.setScalar((isMobile ? 0.6 : 1) * 0.5);
+                networkNodes.forEach(node => node.visible = true);
+                networkLines.forEach(line => line.visible = true);
+            }
+
+            // Section 2: Feature 1 - Floating islands
+            else if (currentSection === 2) {
+                floatingIslands.forEach(island => island.visible = true);
+            }
+
+            // Section 3: Feature 2 - Holographic panels
+            else if (currentSection === 3) {
+                holographicPanels.forEach(panel => panel.visible = true);
+            }
+
+            // Section 4: Feature 3 - Energy field
+            else if (currentSection === 4) {
+                if (energyField) energyField.visible = true;
+            }
+
+            // Section 5: Demo - Interactive sphere
+            else if (currentSection === 5) {
+                if (interactiveSphere) interactiveSphere.visible = true;
+            }
+
+            // Section 6: Tech - Tech visualization
+            else if (currentSection === 6) {
+                if (techVisualization) techVisualization.visible = true;
+            }
+
+            // Section 7: Footer - Particles disperse
+            else if (currentSection === 7) {
+                // Particle dispersion handled in animate()
+            }
+        }
+
+        // ===== ANIMATION LOOP =====
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isLoaded) return;
+
+            time += 0.01 * currentSpeed;
+
+            // Smooth mouse follow
+            targetMouseX += (mouseX - targetMouseX) * 0.05;
+            targetMouseY += (mouseY - targetMouseY) * 0.05;
+
+            // Camera parallax
+            if (!isMobile) {
+                camera.position.x += (targetMouseX * 2 - camera.position.x) * 0.05;
+                camera.position.y += (targetMouseY * 2 - camera.position.y) * 0.05;
+            }
+
+            // Camera zoom based on scroll
+            const targetZ = (isMobile ? 20 : 15) - scrollProgress * 8;
+            camera.position.z += (targetZ - camera.position.z) * 0.05;
+
+            // Update scene based on current section
+            updateSceneForSection();
+
+            // PORTAL ANIMATION
+            if (portal && portal.visible) {
+                portal.rotation.x = time * 0.3;
+                portal.rotation.y = time * 0.5;
+                portal.rotation.z = time * 0.2;
+
+                // Pulse effect
+                const pulse = 1 + Math.sin(time * 2) * 0.05;
+                portal.children[0].scale.set(pulse, pulse, pulse);
+            }
+
+            // PARTICLE SYSTEM ANIMATION
+            if (particleSystem) {
+                const positions = particleSystem.geometry.attributes.position.array;
+
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    const offset = i * 0.01;
+
+                    // Figure-8 orbital motion (from bee pattern)
+                    const angle = time + offset;
+                    const radius = 15 + Math.sin(time + offset) * 5;
+
+                    positions[i3] += Math.sin(angle) * 0.02;
+                    positions[i3 + 1] += Math.cos(angle) * 0.02;
+                    positions[i3 + 2] += Math.sin(angle * 2) * 0.01;
+
+                    // Keep particles in bounds
+                    const dist = Math.sqrt(
+                        positions[i3] ** 2 +
+                        positions[i3 + 1] ** 2 +
+                        positions[i3 + 2] ** 2
+                    );
+                    if (dist > 35) {
+                        positions[i3] *= 0.95;
+                        positions[i3 + 1] *= 0.95;
+                        positions[i3 + 2] *= 0.95;
+                    }
+                }
+
+                particleSystem.geometry.attributes.position.needsUpdate = true;
+                particleSystem.rotation.y = time * 0.05;
+
+                // Disperse in footer section
+                if (currentSection === 7) {
+                    const disperseAmount = (scrollProgress - 0.875) * 10;
+                    for (let i = 0; i < particleCount; i++) {
+                        const i3 = i * 3;
+                        const factor = 1 + disperseAmount * 0.5;
+                        positions[i3] *= factor;
+                        positions[i3 + 1] *= factor;
+                        positions[i3 + 2] *= factor;
+                    }
+                }
+            }
+
+            // NETWORK NODES ANIMATION
+            networkNodes.forEach((node, i) => {
+                if (node.visible) {
+                    const offset = node.userData.offset;
+                    node.position.y = node.userData.originalPosition.y + Math.sin(time + offset) * 0.5;
+                    node.scale.setScalar(1 + Math.sin(time * 2 + offset) * 0.2);
+
+                    // Update line connections
+                    networkLines.forEach(line => {
+                        if (line.visible) {
+                            line.geometry.dispose();
+                            const points = [];
+                            networkNodes.forEach(n => points.push(n.position));
+                            // Update only relevant lines (simplified for performance)
+                        }
+                    });
+                }
+            });
+
+            // FLOATING ISLANDS ANIMATION
+            floatingIslands.forEach((island, i) => {
+                if (island.visible) {
+                    const offset = island.userData.offset;
+                    const speed = island.userData.speed;
+                    island.rotation.x = time * speed * 0.3;
+                    island.rotation.y = time * speed * 0.5;
+                    island.position.y += Math.sin(time + offset) * 0.02;
+                }
+            });
+
+            // HOLOGRAPHIC PANELS ANIMATION
+            holographicPanels.forEach((panel, i) => {
+                if (panel.visible) {
+                    const offset = panel.userData.offset;
+                    panel.rotation.y += 0.01;
+                    panel.position.y += Math.sin(time + offset) * 0.01;
+                    panel.material.opacity = 0.15 + Math.sin(time * 2 + offset) * 0.05;
+                }
+            });
+
+            // ENERGY FIELD ANIMATION
+            if (energyField && energyField.visible) {
+                energyField.rotation.x = time * 0.3;
+                energyField.rotation.y = time * 0.5;
+                energyField.scale.setScalar(1 + Math.sin(time * 2) * 0.1);
+            }
+
+            // INTERACTIVE SPHERE ANIMATION
+            if (interactiveSphere && interactiveSphere.visible) {
+                interactiveSphere.rotation.x = time * 0.2;
+                interactiveSphere.rotation.y = time * 0.3;
+
+                // React to mouse
+                interactiveSphere.position.x += (targetMouseX * 5 - interactiveSphere.position.x) * 0.1;
+                interactiveSphere.position.y += (targetMouseY * 5 - interactiveSphere.position.y) * 0.1;
+
+                // Pulse
+                const pulse = 1 + Math.sin(time * 2) * 0.05;
+                interactiveSphere.scale.set(pulse, pulse, pulse);
+            }
+
+            // TECH VISUALIZATION ANIMATION
+            if (techVisualization && techVisualization.visible) {
+                techVisualization.rotation.y = time * 0.3;
+            }
+
+            // Render scene
+            renderer.render(scene, camera);
+        }
+
+        // ===== START APPLICATION =====
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
