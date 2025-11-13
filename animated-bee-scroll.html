@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Animated Bee - Scroll Interactive</title>
+
+    <style>
+        /* ===== GLOBAL STYLES ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB 0%, #98D8C8 50%, #F7DC6F 100%);
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* ===== THREE.JS CANVAS CONTAINER ===== */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 100;
+            pointer-events: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #FFF8DC;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: opacity 0.5s ease;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #FFD700;
+            border-top: 5px solid #000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        #loading h2 {
+            margin-top: 20px;
+            color: #333;
+            font-size: 1.5rem;
+        }
+
+        /* ===== CONTENT SECTIONS ===== */
+        .content {
+            position: relative;
+            z-index: 10;
+        }
+
+        section {
+            min-height: 100vh;
+            padding: 80px 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        section h1 {
+            font-size: 3.5rem;
+            margin-bottom: 30px;
+            color: #2C3E50;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 25px;
+            color: #34495E;
+        }
+
+        section p {
+            max-width: 800px;
+            font-size: 1.2rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            color: #2C3E50;
+            background: rgba(255, 255, 255, 0.7);
+            padding: 20px;
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+        }
+
+        .section-facts {
+            background: rgba(255, 248, 220, 0.3);
+        }
+
+        .section-importance {
+            background: rgba(152, 216, 200, 0.3);
+        }
+
+        .section-honey {
+            background: rgba(247, 220, 111, 0.3);
+        }
+
+        .section-conservation {
+            background: rgba(135, 206, 235, 0.3);
+        }
+
+        /* ===== SCROLL INDICATOR ===== */
+        .scroll-indicator {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 2rem;
+            color: #2C3E50;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% {
+                transform: translateX(-50%) translateY(0);
+            }
+            40% {
+                transform: translateX(-50%) translateY(-20px);
+            }
+            60% {
+                transform: translateX(-50%) translateY(-10px);
+            }
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            section h1 {
+                font-size: 2.5rem;
+            }
+
+            section h2 {
+                font-size: 2rem;
+            }
+
+            section p {
+                font-size: 1rem;
+                padding: 15px;
+            }
+
+            section {
+                padding: 60px 20px;
+            }
+        }
+
+        /* ===== MUTE BUTTON ===== */
+        #mute-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 200;
+            background: #FFD700;
+            border: 2px solid #000;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            cursor: pointer;
+            font-size: 1.5rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.2s;
+            pointer-events: all;
+        }
+
+        #mute-btn:hover {
+            transform: scale(1.1);
+        }
+
+        #mute-btn.muted {
+            background: #999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="spinner"></div>
+        <h2>Loading Your Buzzing Friend...</h2>
+    </div>
+
+    <!-- Three.js Canvas Container -->
+    <div id="canvas-container"></div>
+
+    <!-- Mute Button -->
+    <button id="mute-btn" title="Toggle Sound">🔊</button>
+
+    <!-- Page Content -->
+    <div class="content">
+        <!-- Hero Section -->
+        <section class="hero">
+            <h1>🐝 The Amazing World of Bees 🐝</h1>
+            <p>
+                Watch our friendly bee companion as you scroll! Notice how it responds to your scrolling speed,
+                flying faster when you scroll down quickly and slowing to a graceful glide when you scroll up.
+                This magical bee is here to guide you through the fascinating world of these incredible pollinators.
+            </p>
+            <div class="scroll-indicator">↓</div>
+        </section>
+
+        <!-- Section 2: Bee Facts -->
+        <section class="section-facts">
+            <h2>Fascinating Bee Facts</h2>
+            <p>
+                Honeybees are remarkable creatures that have been around for millions of years. A single bee colony
+                can contain up to 60,000 bees during peak season! Each bee has a specific role - queens lay eggs,
+                drones mate with queens, and worker bees do everything else from foraging to building honeycomb.
+            </p>
+            <p>
+                Bees communicate through an intricate "waggle dance" that tells other bees the direction and distance
+                to flowers. They can fly up to 15 miles per hour and beat their wings 200 times per second, creating
+                that distinctive buzzing sound we all know. Their vision allows them to see ultraviolet light,
+                revealing patterns on flowers that are invisible to human eyes!
+            </p>
+        </section>
+
+        <!-- Section 3: Importance of Bees -->
+        <section class="section-importance">
+            <h2>Why Bees Matter</h2>
+            <p>
+                Bees are responsible for pollinating approximately one-third of the food we eat. Without bees,
+                we would lose most of our fruits, vegetables, and nuts. Almonds, apples, blueberries, cherries,
+                avocados, and countless other crops depend entirely on bee pollination. The economic value of
+                pollination services provided by bees is estimated at over $15 billion annually in the United States alone.
+            </p>
+            <p>
+                Beyond agriculture, bees play a crucial role in maintaining biodiversity. They pollinate wildflowers
+                and plants that provide habitat and food for countless other species. Protecting bees means protecting
+                entire ecosystems and the delicate balance of nature that sustains all life on Earth.
+            </p>
+        </section>
+
+        <!-- Section 4: Honey Production -->
+        <section class="section-honey">
+            <h2>The Sweet Gift of Honey</h2>
+            <p>
+                Honey is truly a miracle food! To produce just one pound of honey, bees must visit approximately
+                2 million flowers and fly over 55,000 miles collectively. A single bee will produce only about
+                1/12th of a teaspoon of honey in her entire lifetime. This puts the value of every drop into perspective!
+            </p>
+            <p>
+                Honey has natural antibacterial properties and never spoils - archaeologists have found pots of honey
+                in ancient Egyptian tombs that are still perfectly edible after thousands of years! Beyond its culinary
+                uses, honey has been used medicinally throughout human history to treat wounds, soothe sore throats,
+                and boost energy. It's nature's perfect superfood, packed with antioxidants, vitamins, and minerals.
+            </p>
+        </section>
+
+        <!-- Section 5: Conservation -->
+        <section class="section-conservation">
+            <h2>Protecting Our Pollinators</h2>
+            <p>
+                Unfortunately, bee populations worldwide are facing serious challenges. Habitat loss, pesticide use,
+                climate change, and diseases are all contributing to declining bee numbers. Colony Collapse Disorder,
+                where worker bees mysteriously abandon their hives, has devastated many bee populations.
+            </p>
+            <p>
+                But there's hope! You can help protect bees by planting bee-friendly flowers, avoiding pesticides,
+                supporting local beekeepers, and creating bee habitats in your garden. Even a small container garden
+                on a balcony with lavender, sunflowers, or wildflowers can provide valuable resources for bees.
+                Together, we can ensure these incredible creatures continue to thrive and sustain our planet's ecosystems.
+            </p>
+            <p style="margin-top: 40px; font-weight: bold; font-size: 1.4rem;">
+                Thank you for scrolling with our bee friend! 🐝💛
+            </p>
+        </section>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+
+    <script>
+        // ===== GLOBAL VARIABLES =====
+        let scene, camera, renderer, bee;
+        let beeBody, leftWing, rightWing, leftAntenna, rightAntenna;
+        let scrollY = 0;
+        let scrollVelocity = 0;
+        let lastScrollY = 0;
+        let time = 0;
+        let baseSpeed = 1; // Base animation speed
+        let currentSpeed = 1; // Current animation speed based on scroll
+        let isMuted = true; // Start muted to avoid autoplay issues
+        let buzzSound;
+
+        // ===== INITIALIZATION =====
+        function init() {
+            // Create scene
+            scene = new THREE.Scene();
+
+            // Create camera with perspective projection
+            camera = new THREE.PerspectiveCamera(
+                75, // Field of view
+                window.innerWidth / window.innerHeight, // Aspect ratio
+                0.1, // Near clipping plane
+                1000 // Far clipping plane
+            );
+            camera.position.z = 15;
+
+            // Create WebGL renderer
+            renderer = new THREE.WebGLRenderer({
+                alpha: true, // Transparent background
+                antialias: true // Smooth edges
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            // Add lighting
+            setupLighting();
+
+            // Create the 3D bee
+            createBee();
+
+            // Setup audio (optional buzzing sound)
+            setupAudio();
+
+            // Add event listeners
+            window.addEventListener('scroll', onScroll);
+            window.addEventListener('resize', onWindowResize);
+            document.getElementById('mute-btn').addEventListener('click', toggleMute);
+
+            // Hide loading screen
+            setTimeout(() => {
+                document.getElementById('loading').classList.add('hidden');
+            }, 1000);
+
+            // Start animation loop
+            animate();
+        }
+
+        // ===== LIGHTING SETUP =====
+        function setupLighting() {
+            // Ambient light - provides overall illumination
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            // Directional light - creates shadows and highlights
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 5);
+            directionalLight.castShadow = true;
+            directionalLight.shadow.mapSize.width = 1024;
+            directionalLight.shadow.mapSize.height = 1024;
+            scene.add(directionalLight);
+
+            // Additional light from below for better visibility
+            const bottomLight = new THREE.DirectionalLight(0xffffcc, 0.3);
+            bottomLight.position.set(0, -5, 5);
+            scene.add(bottomLight);
+        }
+
+        // ===== BEE CREATION =====
+        function createBee() {
+            // Main bee group to hold all parts
+            bee = new THREE.Group();
+
+            // === BEE BODY ===
+            // Create striped body using multiple segments
+            const bodyGroup = new THREE.Group();
+
+            // Yellow segments
+            const yellowMaterial = new THREE.MeshPhongMaterial({
+                color: 0xFFD700,
+                shininess: 30
+            });
+
+            // Black segments
+            const blackMaterial = new THREE.MeshPhongMaterial({
+                color: 0x000000,
+                shininess: 30
+            });
+
+            // Create striped body with alternating colors
+            const stripeCount = 5;
+            const segmentHeight = 0.35;
+
+            for (let i = 0; i < stripeCount; i++) {
+                const geometry = new THREE.SphereGeometry(0.5, 16, 16);
+                const material = i % 2 === 0 ? yellowMaterial : blackMaterial;
+                const segment = new THREE.Mesh(geometry, material);
+                segment.scale.set(1, segmentHeight, 1);
+                segment.position.y = -i * 0.3;
+                segment.castShadow = true;
+                bodyGroup.add(segment);
+            }
+
+            beeBody = bodyGroup;
+            bee.add(beeBody);
+
+            // === BEE HEAD ===
+            const headGeometry = new THREE.SphereGeometry(0.4, 16, 16);
+            const headMaterial = new THREE.MeshPhongMaterial({ color: 0xFFD700 });
+            const head = new THREE.Mesh(headGeometry, headMaterial);
+            head.position.set(0, 0.6, 0.1);
+            head.castShadow = true;
+            bee.add(head);
+
+            // === EYES ===
+            const eyeGeometry = new THREE.SphereGeometry(0.1, 8, 8);
+            const eyeMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+
+            const leftEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            leftEye.position.set(-0.15, 0.7, 0.3);
+            bee.add(leftEye);
+
+            const rightEye = new THREE.Mesh(eyeGeometry, eyeMaterial);
+            rightEye.position.set(0.15, 0.7, 0.3);
+            bee.add(rightEye);
+
+            // === ANTENNAE ===
+            const antennaMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            const antennaGeometry = new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8);
+
+            leftAntenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
+            leftAntenna.position.set(-0.15, 0.9, 0.1);
+            leftAntenna.rotation.z = Math.PI / 6;
+            bee.add(leftAntenna);
+
+            rightAntenna = new THREE.Mesh(antennaGeometry, antennaMaterial);
+            rightAntenna.position.set(0.15, 0.9, 0.1);
+            rightAntenna.rotation.z = -Math.PI / 6;
+            bee.add(rightAntenna);
+
+            // === WINGS ===
+            // Wings with transparency
+            const wingMaterial = new THREE.MeshPhongMaterial({
+                color: 0xCCFFFF,
+                transparent: true,
+                opacity: 0.4,
+                side: THREE.DoubleSide,
+                shininess: 100
+            });
+
+            // Left wing
+            const leftWingGeometry = new THREE.CircleGeometry(0.8, 32);
+            leftWing = new THREE.Mesh(leftWingGeometry, wingMaterial);
+            leftWing.position.set(-0.4, 0.2, -0.1);
+            leftWing.rotation.y = Math.PI / 4;
+            bee.add(leftWing);
+
+            // Right wing
+            const rightWingGeometry = new THREE.CircleGeometry(0.8, 32);
+            rightWing = new THREE.Mesh(rightWingGeometry, wingMaterial);
+            rightWing.position.set(0.4, 0.2, -0.1);
+            rightWing.rotation.y = -Math.PI / 4;
+            bee.add(rightWing);
+
+            // === STINGER ===
+            const stingerGeometry = new THREE.ConeGeometry(0.1, 0.3, 8);
+            const stingerMaterial = new THREE.MeshPhongMaterial({ color: 0x000000 });
+            const stinger = new THREE.Mesh(stingerGeometry, stingerMaterial);
+            stinger.position.set(0, -1.5, 0);
+            stinger.rotation.x = Math.PI;
+            bee.add(stinger);
+
+            // Scale the entire bee appropriately
+            bee.scale.set(1.5, 1.5, 1.5);
+
+            // Initial position
+            bee.position.set(0, 0, 0);
+
+            // Add bee to scene
+            scene.add(bee);
+        }
+
+        // ===== AUDIO SETUP =====
+        function setupAudio() {
+            // Create a simple buzzing sound using Web Audio API
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (AudioContext) {
+                const audioContext = new AudioContext();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+
+                oscillator.type = 'sawtooth';
+                oscillator.frequency.value = 200; // Buzzing frequency
+
+                gainNode.gain.value = 0; // Start muted
+
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+
+                oscillator.start();
+
+                buzzSound = { oscillator, gainNode, audioContext };
+            }
+        }
+
+        // ===== TOGGLE MUTE =====
+        function toggleMute() {
+            isMuted = !isMuted;
+            const btn = document.getElementById('mute-btn');
+
+            if (buzzSound) {
+                if (isMuted) {
+                    buzzSound.gainNode.gain.value = 0;
+                    btn.textContent = '🔇';
+                    btn.classList.add('muted');
+                } else {
+                    // Resume audio context if suspended
+                    if (buzzSound.audioContext.state === 'suspended') {
+                        buzzSound.audioContext.resume();
+                    }
+                    buzzSound.gainNode.gain.value = 0.05; // Low volume
+                    btn.textContent = '🔊';
+                    btn.classList.remove('muted');
+                }
+            }
+        }
+
+        // ===== SCROLL EVENT HANDLER =====
+        function onScroll() {
+            scrollY = window.pageYOffset || document.documentElement.scrollTop;
+
+            // Calculate scroll velocity (how fast user is scrolling)
+            scrollVelocity = scrollY - lastScrollY;
+            lastScrollY = scrollY;
+
+            // Adjust bee speed based on scroll velocity
+            // Scrolling down (positive velocity) speeds up the bee
+            // Scrolling up (negative velocity) slows down the bee
+            const velocityFactor = Math.abs(scrollVelocity) * 0.1;
+
+            if (scrollVelocity > 0) {
+                // Scrolling down - speed up
+                currentSpeed = baseSpeed + velocityFactor * 2;
+            } else if (scrollVelocity < 0) {
+                // Scrolling up - slow down slightly
+                currentSpeed = Math.max(0.5, baseSpeed - velocityFactor * 0.5);
+            } else {
+                // No scrolling - return to base speed gradually
+                currentSpeed += (baseSpeed - currentSpeed) * 0.1;
+            }
+
+            // Clamp speed to reasonable values
+            currentSpeed = Math.max(0.3, Math.min(currentSpeed, 5));
+
+            // Update buzzing sound frequency based on speed
+            if (buzzSound && !isMuted) {
+                buzzSound.oscillator.frequency.value = 200 + currentSpeed * 30;
+            }
+        }
+
+        // ===== WINDOW RESIZE HANDLER =====
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ===== ANIMATION LOOP =====
+        function animate() {
+            requestAnimationFrame(animate);
+
+            // Increment time based on current speed
+            time += 0.01 * currentSpeed;
+
+            // === FIGURE-8 FLIGHT PATTERN ===
+            // Using parametric equations for a figure-8 (lemniscate) curve
+            const scale = 5; // Size of the flight path
+            const scrollOffset = scrollY * 0.001; // Subtle vertical movement based on scroll
+
+            // Figure-8 parametric equations
+            bee.position.x = scale * Math.sin(time) * Math.cos(time);
+            bee.position.y = (scale * Math.sin(time) * 0.5) + scrollOffset;
+
+            // Keep bee in view by constraining position
+            bee.position.x = Math.max(-8, Math.min(8, bee.position.x));
+            bee.position.y = Math.max(-3, Math.min(3, bee.position.y));
+
+            // === BEE ROTATION ===
+            // Rotate bee to face direction of movement
+            const dx = scale * Math.cos(time) * Math.cos(time) - Math.sin(time) * Math.sin(time);
+            const dy = scale * Math.cos(time) * 0.5;
+            const angle = Math.atan2(dy, dx);
+            bee.rotation.z = -angle * 0.5; // Tilt based on direction
+            bee.rotation.y = Math.sin(time * 0.5) * 0.3; // Subtle yaw
+
+            // Add wobble when moving fast
+            if (currentSpeed > 2) {
+                bee.rotation.x = Math.sin(time * 5) * 0.1 * (currentSpeed / 5);
+            } else {
+                bee.rotation.x += (0 - bee.rotation.x) * 0.1;
+            }
+
+            // === WING FLAPPING ANIMATION ===
+            const flapSpeed = 10 * currentSpeed; // Flap faster when bee moves faster
+            const flapAmount = 0.5;
+
+            leftWing.rotation.y = Math.PI / 4 + Math.sin(time * flapSpeed) * flapAmount;
+            rightWing.rotation.y = -Math.PI / 4 - Math.sin(time * flapSpeed) * flapAmount;
+
+            // === ANTENNAE ANIMATION ===
+            // Subtle swaying of antennae
+            leftAntenna.rotation.z = Math.PI / 6 + Math.sin(time * 2) * 0.1;
+            rightAntenna.rotation.z = -Math.PI / 6 - Math.sin(time * 2) * 0.1;
+
+            // Render the scene
+            renderer.render(scene, camera);
+        }
+
+        // ===== START THE APPLICATION =====
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
