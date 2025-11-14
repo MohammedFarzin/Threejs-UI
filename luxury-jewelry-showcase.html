@@ -1,0 +1,1284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Luxury 3D Jewelry Showcase - Experience elegance in every detail">
+    <title>Luxury Jewelry Collection | 3D Showcase</title>
+
+    <style>
+        /* ===== FONTS ===== */
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Montserrat:wght@300;400;600&display=swap');
+
+        /* ===== GLOBAL RESET ===== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --color-gold: #D4AF37;
+            --color-rose-gold: #B76E79;
+            --color-champagne: #F7E7CE;
+            --color-black: #0A0A0A;
+            --color-dark-gray: #1A1A1A;
+            --color-light-gray: #2A2A2A;
+            --color-white: #FFFFFF;
+            --color-silver: #C0C0C0;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: linear-gradient(135deg, var(--color-black) 0%, #0F0F0F 50%, var(--color-dark-gray) 100%);
+            color: var(--color-champagne);
+            overflow-x: hidden;
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            cursor: none;
+        }
+
+        /* ===== CUSTOM CURSOR ===== */
+        #custom-cursor {
+            position: fixed;
+            width: 30px;
+            height: 30px;
+            border: 2px solid var(--color-gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.15s ease, width 0.15s ease, height 0.15s ease;
+            mix-blend-mode: difference;
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        #custom-cursor.hover {
+            width: 60px;
+            height: 60px;
+            background: rgba(212, 175, 55, 0.1);
+            box-shadow: 0 0 40px rgba(212, 175, 55, 0.8);
+        }
+
+        /* ===== LOADING SCREEN ===== */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--color-black);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease;
+        }
+
+        #loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .diamond-loader {
+            width: 80px;
+            height: 80px;
+            position: relative;
+            animation: diamondSpin 2s ease-in-out infinite;
+        }
+
+        .diamond-loader::before,
+        .diamond-loader::after {
+            content: '';
+            position: absolute;
+            border-style: solid;
+        }
+
+        .diamond-loader::before {
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-width: 0 40px 30px 40px;
+            border-color: transparent transparent var(--color-gold) transparent;
+        }
+
+        .diamond-loader::after {
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-width: 50px 40px 0 40px;
+            border-color: var(--color-gold) transparent transparent transparent;
+        }
+
+        @keyframes diamondSpin {
+            0%, 100% { transform: rotate(0deg) scale(1); }
+            50% { transform: rotate(180deg) scale(1.2); }
+        }
+
+        #loading-text {
+            margin-top: 40px;
+            color: var(--color-gold);
+            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            animation: fadeInOut 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        /* ===== NAVIGATION ===== */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 30px 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: linear-gradient(180deg, rgba(10, 10, 10, 0.9) 0%, transparent 100%);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 900;
+            color: var(--color-gold);
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 40px;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--color-champagne);
+            text-decoration: none;
+            font-size: 0.95rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--color-gold);
+            transition: width 0.3s ease;
+        }
+
+        .nav-links a:hover {
+            color: var(--color-gold);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        /* ===== THREE.JS CANVAS ===== */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        canvas {
+            display: block;
+        }
+
+        /* ===== CONTENT SECTIONS ===== */
+        .content {
+            position: relative;
+            z-index: 2;
+        }
+
+        section {
+            min-height: 100vh;
+            padding: 100px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* ===== HERO SECTION ===== */
+        #hero {
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 12vw, 10rem);
+            font-weight: 900;
+            line-height: 1;
+            margin-bottom: 30px;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease forwards 0.5s;
+            text-shadow: 0 0 40px rgba(212, 175, 55, 0.6);
+        }
+
+        .gold {
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-rose-gold) 50%, var(--color-gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 3s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-subtitle {
+            font-size: clamp(1rem, 3vw, 1.5rem);
+            font-weight: 300;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            opacity: 0;
+            animation: fadeInUp 1.5s ease forwards 1s;
+            color: var(--color-champagne);
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            animation: fadeInUp 1.5s ease forwards 1.5s;
+            text-align: center;
+        }
+
+        .scroll-text {
+            font-size: 0.85rem;
+            letter-spacing: 3px;
+            color: var(--color-gold);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+        }
+
+        .scroll-line {
+            width: 2px;
+            height: 60px;
+            background: linear-gradient(180deg, var(--color-gold) 0%, transparent 100%);
+            margin: 0 auto;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scroll-line::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 30px;
+            background: var(--color-champagne);
+            animation: scrollDown 2s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--color-gold);
+        }
+
+        @keyframes scrollDown {
+            0%, 100% { transform: translateY(-30px); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(60px); }
+        }
+
+        /* ===== ABOUT SECTION ===== */
+        #about {
+            background: linear-gradient(135deg, rgba(10, 10, 10, 0.95) 0%, rgba(26, 26, 26, 0.95) 100%);
+        }
+
+        .about-content {
+            max-width: 900px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .about-content.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .about-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.5rem, 8vw, 5rem);
+            font-weight: 900;
+            margin-bottom: 40px;
+            color: var(--color-champagne);
+        }
+
+        .about-content p {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            line-height: 2;
+            color: rgba(247, 231, 206, 0.9);
+            font-weight: 300;
+        }
+
+        /* ===== GALLERY SECTION ===== */
+        #gallery {
+            padding: 150px 60px;
+        }
+
+        .gallery-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 8vw, 6rem);
+            font-weight: 900;
+            text-align: center;
+            margin-bottom: 100px;
+            opacity: 0;
+            transform: translateY(50px);
+            transition: opacity 1s ease, transform 1s ease;
+        }
+
+        .gallery-title.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 60px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .gallery-item {
+            background: linear-gradient(135deg, rgba(26, 26, 26, 0.8) 0%, rgba(42, 42, 42, 0.6) 100%);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            opacity: 0;
+            transform: translateY(50px);
+            backdrop-filter: blur(10px);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .gallery-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .gallery-item:hover::before {
+            left: 100%;
+        }
+
+        .gallery-item.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-20px);
+            border-color: var(--color-gold);
+            box-shadow: 0 20px 60px rgba(212, 175, 55, 0.4);
+        }
+
+        .jewelry-canvas {
+            width: 100%;
+            height: 300px;
+            margin-bottom: 30px;
+            border-radius: 10px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+        }
+
+        .gallery-item h3 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--color-gold);
+            margin-bottom: 15px;
+        }
+
+        .gallery-item p {
+            font-size: 1rem;
+            color: rgba(247, 231, 206, 0.8);
+            line-height: 1.8;
+            font-weight: 300;
+        }
+
+        .rotate-hint {
+            font-size: 0.85rem;
+            color: var(--color-gold);
+            margin-top: 20px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* ===== FOOTER ===== */
+        footer {
+            padding: 80px 60px;
+            text-align: center;
+            background: var(--color-black);
+            border-top: 1px solid rgba(212, 175, 55, 0.3);
+        }
+
+        .footer-content h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            margin-bottom: 30px;
+        }
+
+        .footer-content p {
+            font-size: 1.2rem;
+            color: rgba(247, 231, 206, 0.8);
+            margin-bottom: 50px;
+        }
+
+        .cta-button {
+            padding: 20px 60px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--color-gold) 0%, var(--color-rose-gold) 100%);
+            color: var(--color-black);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.4);
+            position: relative;
+            overflow: hidden;
+            pointer-events: all;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: var(--color-champagne);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .cta-button:hover::before {
+            width: 400px;
+            height: 400px;
+        }
+
+        .cta-button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 15px 60px rgba(212, 175, 55, 0.6);
+        }
+
+        /* ===== RESPONSIVE DESIGN ===== */
+        @media (max-width: 768px) {
+            nav {
+                padding: 20px 30px;
+            }
+
+            .logo {
+                font-size: 1.5rem;
+            }
+
+            .nav-links {
+                gap: 20px;
+            }
+
+            .nav-links a {
+                font-size: 0.75rem;
+            }
+
+            section {
+                padding: 80px 30px;
+            }
+
+            #gallery {
+                padding: 100px 30px;
+            }
+
+            .gallery-grid {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .gallery-item {
+                padding: 30px;
+            }
+
+            .jewelry-canvas {
+                height: 250px;
+            }
+
+            #custom-cursor {
+                display: none;
+            }
+
+            body {
+                cursor: auto;
+            }
+
+            .cta-button {
+                padding: 18px 40px;
+                font-size: 1rem;
+            }
+        }
+
+        /* ===== ANIMATIONS ===== */
+        .sparkle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--color-gold);
+            border-radius: 50%;
+            animation: sparkleFloat 3s ease-in-out infinite;
+            box-shadow: 0 0 10px var(--color-gold);
+        }
+
+        @keyframes sparkleFloat {
+            0%, 100% {
+                transform: translateY(0) scale(0);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(-100px) scale(1);
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading">
+        <div class="diamond-loader"></div>
+        <div id="loading-text">Loading Elegance</div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div id="custom-cursor"></div>
+
+    <!-- Navigation -->
+    <nav>
+        <div class="logo">LUXE</div>
+        <ul class="nav-links">
+            <li><a href="#hero">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#gallery">Collection</a></li>
+            <li><a href="#footer">Contact</a></li>
+        </ul>
+    </nav>
+
+    <!-- Three.js Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- HERO SECTION -->
+        <section id="hero">
+            <h1 class="hero-title">
+                <span class="gold">TIMELESS</span><br>
+                ELEGANCE
+            </h1>
+            <p class="hero-subtitle">Crafted for Eternity</p>
+            <div class="scroll-indicator">
+                <div class="scroll-text">Scroll to Explore</div>
+                <div class="scroll-line"></div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about">
+            <div class="about-content">
+                <h2>Where Art Meets <span class="gold">Luxury</span></h2>
+                <p>
+                    Each piece in our collection tells a story of unparalleled craftsmanship and timeless beauty.
+                    From the brilliance of our diamonds to the luster of our precious metals, every detail is
+                    meticulously designed to capture the essence of sophistication and elegance.
+                </p>
+            </div>
+        </section>
+
+        <!-- GALLERY SECTION -->
+        <section id="gallery">
+            <h2 class="gallery-title"><span class="gold">Signature</span> Collection</h2>
+            <div class="gallery-grid">
+                <!-- Diamond Ring -->
+                <div class="gallery-item" data-jewelry="ring">
+                    <div class="jewelry-canvas" id="jewelry-1"></div>
+                    <h3>Diamond Ring</h3>
+                    <p>Exquisite solitaire diamond ring featuring a flawless 2-carat centerpiece in 18K white gold.</p>
+                    <div class="rotate-hint">Drag to rotate • 360°</div>
+                </div>
+
+                <!-- Gold Necklace -->
+                <div class="gallery-item" data-jewelry="necklace">
+                    <div class="jewelry-canvas" id="jewelry-2"></div>
+                    <h3>Gold Necklace</h3>
+                    <p>Stunning 24K gold necklace with intricate filigree work, adorned with precious gemstones.</p>
+                    <div class="rotate-hint">Drag to rotate • 360°</div>
+                </div>
+
+                <!-- Pearl Earrings -->
+                <div class="gallery-item" data-jewelry="earrings">
+                    <div class="jewelry-canvas" id="jewelry-3"></div>
+                    <h3>Pearl Earrings</h3>
+                    <p>Elegant Tahitian pearl drop earrings set in rose gold with diamond accents.</p>
+                    <div class="rotate-hint">Drag to rotate • 360°</div>
+                </div>
+
+                <!-- Sapphire Bracelet -->
+                <div class="gallery-item" data-jewelry="bracelet">
+                    <div class="jewelry-canvas" id="jewelry-4"></div>
+                    <h3>Sapphire Bracelet</h3>
+                    <p>Luxurious tennis bracelet featuring alternating sapphires and diamonds in platinum.</p>
+                    <div class="rotate-hint">Drag to rotate • 360°</div>
+                </div>
+
+                <!-- Emerald Ring -->
+                <div class="gallery-item" data-jewelry="ring2">
+                    <div class="jewelry-canvas" id="jewelry-5"></div>
+                    <h3>Emerald Ring</h3>
+                    <p>Rare Colombian emerald ring surrounded by brilliant-cut diamonds in yellow gold.</p>
+                    <div class="rotate-hint">Drag to rotate • 360°</div>
+                </div>
+
+                <!-- Ruby Necklace -->
+                <div class="gallery-item" data-jewelry="necklace2">
+                    <div class="jewelry-canvas" id="jewelry-6"></div>
+                    <h3>Ruby Necklace</h3>
+                    <p>Majestic Burmese ruby pendant on a delicate platinum chain with diamond halo.</p>
+                    <div class="rotate-hint">Drag to rotate • 360°</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer id="footer">
+            <div class="footer-content">
+                <h2>Experience <span class="gold">Luxury</span></h2>
+                <p>Visit our boutique to explore our exclusive collection</p>
+                <button class="cta-button"><span>Book Appointment</span></button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Three.js Library -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+
+    <script>
+        // ===== GLOBAL VARIABLES =====
+        let mainScene, mainCamera, mainRenderer;
+        let heroJewelry;
+        let galleryScenes = [];
+        let galleryRenderers = [];
+        let scrollY = 0;
+        let lastScrollY = 0;
+        let scrollProgress = 0;
+        let time = 0;
+        let mouseX = 0, mouseY = 0;
+        let isLoaded = false;
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // ===== INITIALIZATION =====
+        function init() {
+            try {
+                console.log('Initializing Luxury Jewelry Showcase...');
+
+                if (typeof THREE === 'undefined') {
+                    throw new Error('THREE.js failed to load');
+                }
+
+                // Create main scene for hero section
+                setupMainScene();
+
+                // Create individual gallery item scenes
+                setupGalleryScenes();
+
+                // Setup events
+                window.addEventListener('scroll', onScroll, { passive: true });
+                window.addEventListener('resize', onWindowResize);
+                document.addEventListener('mousemove', onMouseMove);
+
+                // Custom cursor
+                if (!isMobile) {
+                    setupCustomCursor();
+                }
+
+                // Intersection observer
+                setupIntersectionObserver();
+
+                // CTA button
+                document.querySelector('.cta-button').addEventListener('click', () => {
+                    alert('Thank you for your interest! Our boutique team will contact you shortly. ✨');
+                });
+
+                isLoaded = true;
+
+                // Start animation
+                animate();
+
+                // Hide loading screen
+                setTimeout(() => {
+                    document.getElementById('loading').classList.add('hidden');
+                }, 1500);
+
+                console.log('✓ Jewelry Showcase initialized successfully!');
+            } catch (error) {
+                console.error('Failed to initialize:', error);
+                document.getElementById('loading').classList.add('hidden');
+            }
+        }
+
+        // ===== MAIN SCENE SETUP (HERO) =====
+        function setupMainScene() {
+            mainScene = new THREE.Scene();
+            mainScene.fog = new THREE.Fog(0x0A0A0A, 10, 50);
+
+            mainCamera = new THREE.PerspectiveCamera(
+                50,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            mainCamera.position.set(0, 0, 15);
+
+            mainRenderer = new THREE.WebGLRenderer({
+                alpha: true,
+                antialias: true,
+                powerPreference: 'high-performance'
+            });
+            mainRenderer.setSize(window.innerWidth, window.innerHeight);
+            mainRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            document.getElementById('canvas-container').appendChild(mainRenderer.domElement);
+
+            // Lighting
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+            mainScene.add(ambientLight);
+
+            const pointLight1 = new THREE.PointLight(0xD4AF37, 2, 50);
+            pointLight1.position.set(10, 10, 10);
+            mainScene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xB76E79, 1.5, 50);
+            pointLight2.position.set(-10, -10, 10);
+            mainScene.add(pointLight2);
+
+            const spotLight = new THREE.SpotLight(0xffffff, 1);
+            spotLight.position.set(0, 20, 0);
+            spotLight.angle = Math.PI / 6;
+            mainScene.add(spotLight);
+
+            // Create hero jewelry (large diamond)
+            createHeroJewelry();
+
+            // Create ambient particles
+            createParticles();
+        }
+
+        // ===== CREATE HERO JEWELRY =====
+        function createHeroJewelry() {
+            const group = new THREE.Group();
+
+            // Diamond shape
+            const diamondGeometry = new THREE.OctahedronGeometry(3, 0);
+            const diamondMaterial = new THREE.MeshStandardMaterial({
+                color: 0xD4AF37,
+                metalness: 0.9,
+                roughness: 0.1,
+                emissive: 0xD4AF37,
+                emissiveIntensity: 0.3,
+                envMapIntensity: 1
+            });
+            const diamond = new THREE.Mesh(diamondGeometry, diamondMaterial);
+            group.add(diamond);
+
+            // Ring
+            const ringGeometry = new THREE.TorusGeometry(4, 0.3, 16, 100);
+            const ringMaterial = new THREE.MeshStandardMaterial({
+                color: 0xD4AF37,
+                metalness: 0.95,
+                roughness: 0.05,
+                emissive: 0xD4AF37,
+                emissiveIntensity: 0.2
+            });
+            const ring = new THREE.Mesh(ringGeometry, ringMaterial);
+            ring.rotation.x = Math.PI / 2;
+            ring.position.y = -2;
+            group.add(ring);
+
+            // Glow effect
+            const glowGeometry = new THREE.OctahedronGeometry(3.5, 0);
+            const glowMaterial = new THREE.MeshBasicMaterial({
+                color: 0xD4AF37,
+                transparent: true,
+                opacity: 0.1,
+                side: THREE.BackSide
+            });
+            const glow = new THREE.Mesh(glowGeometry, glowMaterial);
+            group.add(glow);
+
+            heroJewelry = group;
+            heroJewelry.scale.set(isMobile ? 0.6 : 1, isMobile ? 0.6 : 1, isMobile ? 0.6 : 1);
+            mainScene.add(heroJewelry);
+        }
+
+        // ===== CREATE PARTICLES =====
+        function createParticles() {
+            const particleCount = isMobile ? 500 : 2000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const radius = 20 + Math.random() * 30;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+
+                positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = radius * Math.cos(phi);
+
+                // Gold to champagne gradient
+                const t = Math.random();
+                colors[i * 3] = 0.831 + (0.969 - 0.831) * t;
+                colors[i * 3 + 1] = 0.686 + (0.906 - 0.686) * t;
+                colors[i * 3 + 2] = 0.216 + (0.808 - 0.216) * t;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: isMobile ? 1.5 : 2.5,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            mainScene.add(particles);
+
+            particles.userData.update = function(time) {
+                this.rotation.y = time * 0.05;
+                const positions = this.geometry.attributes.position.array;
+                for (let i = 0; i < particleCount; i++) {
+                    const i3 = i * 3;
+                    positions[i3 + 1] += Math.sin(time + i * 0.1) * 0.02;
+                }
+                this.geometry.attributes.position.needsUpdate = true;
+            };
+        }
+
+        // ===== GALLERY SCENES SETUP =====
+        function setupGalleryScenes() {
+            const canvasIds = ['jewelry-1', 'jewelry-2', 'jewelry-3', 'jewelry-4', 'jewelry-5', 'jewelry-6'];
+            const jewelryTypes = ['ring', 'necklace', 'earrings', 'bracelet', 'ring2', 'necklace2'];
+
+            canvasIds.forEach((canvasId, index) => {
+                const container = document.getElementById(canvasId);
+                if (!container) return;
+
+                // Create scene
+                const scene = new THREE.Scene();
+                const camera = new THREE.PerspectiveCamera(
+                    50,
+                    container.clientWidth / container.clientHeight,
+                    0.1,
+                    1000
+                );
+                camera.position.set(0, 0, 8);
+
+                const renderer = new THREE.WebGLRenderer({
+                    alpha: true,
+                    antialias: true
+                });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                container.appendChild(renderer.domElement);
+
+                // Lighting
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+                scene.add(ambientLight);
+
+                const pointLight = new THREE.PointLight(0xD4AF37, 1.5, 50);
+                pointLight.position.set(5, 5, 5);
+                scene.add(pointLight);
+
+                const pointLight2 = new THREE.PointLight(0xB76E79, 1, 50);
+                pointLight2.position.set(-5, -5, 5);
+                scene.add(pointLight2);
+
+                // Create jewelry
+                const jewelry = createGalleryJewelry(jewelryTypes[index]);
+                scene.add(jewelry);
+
+                // Store scene data
+                galleryScenes.push({
+                    scene,
+                    camera,
+                    renderer,
+                    jewelry,
+                    container,
+                    isDragging: false,
+                    previousMousePosition: { x: 0, y: 0 }
+                });
+
+                // Add rotation interaction
+                setupJewelryInteraction(galleryScenes[galleryScenes.length - 1], container);
+            });
+        }
+
+        // ===== CREATE GALLERY JEWELRY =====
+        function createGalleryJewelry(type) {
+            const group = new THREE.Group();
+
+            switch(type) {
+                case 'ring':
+                case 'ring2':
+                    // Diamond
+                    const diamondGeo = new THREE.OctahedronGeometry(1, 0);
+                    const diamondMat = new THREE.MeshStandardMaterial({
+                        color: type === 'ring' ? 0xffffff : 0x50C878,
+                        metalness: 0.9,
+                        roughness: 0.1,
+                        emissive: type === 'ring' ? 0xffffff : 0x50C878,
+                        emissiveIntensity: 0.2
+                    });
+                    const diamond = new THREE.Mesh(diamondGeo, diamondMat);
+                    group.add(diamond);
+
+                    // Ring band
+                    const bandGeo = new THREE.TorusGeometry(1.5, 0.15, 16, 100);
+                    const bandMat = new THREE.MeshStandardMaterial({
+                        color: type === 'ring' ? 0xC0C0C0 : 0xD4AF37,
+                        metalness: 0.95,
+                        roughness: 0.05
+                    });
+                    const band = new THREE.Mesh(bandGeo, bandMat);
+                    band.rotation.x = Math.PI / 2;
+                    band.position.y = -0.8;
+                    group.add(band);
+                    break;
+
+                case 'necklace':
+                case 'necklace2':
+                    // Pendant
+                    const pendantGeo = new THREE.SphereGeometry(0.8, 32, 32);
+                    const pendantMat = new THREE.MeshStandardMaterial({
+                        color: type === 'necklace' ? 0xD4AF37 : 0xE0115F,
+                        metalness: 0.9,
+                        roughness: 0.1,
+                        emissive: type === 'necklace' ? 0xD4AF37 : 0xE0115F,
+                        emissiveIntensity: 0.3
+                    });
+                    const pendant = new THREE.Mesh(pendantGeo, pendantMat);
+                    group.add(pendant);
+
+                    // Chain
+                    const chainGeo = new THREE.TorusGeometry(2, 0.05, 8, 100);
+                    const chainMat = new THREE.MeshStandardMaterial({
+                        color: type === 'necklace' ? 0xD4AF37 : 0xE5E4E2,
+                        metalness: 0.9,
+                        roughness: 0.1
+                    });
+                    const chain = new THREE.Mesh(chainGeo, chainMat);
+                    chain.rotation.x = Math.PI / 2;
+                    group.add(chain);
+                    break;
+
+                case 'earrings':
+                    // Pearls
+                    const pearl1Geo = new THREE.SphereGeometry(0.6, 32, 32);
+                    const pearlMat = new THREE.MeshStandardMaterial({
+                        color: 0xF0EAD6,
+                        metalness: 0.3,
+                        roughness: 0.2,
+                        emissive: 0xF0EAD6,
+                        emissiveIntensity: 0.1
+                    });
+                    const pearl1 = new THREE.Mesh(pearl1Geo, pearlMat);
+                    pearl1.position.x = -1;
+                    group.add(pearl1);
+
+                    const pearl2 = new THREE.Mesh(pearl1Geo, pearlMat);
+                    pearl2.position.x = 1;
+                    group.add(pearl2);
+
+                    // Hooks
+                    const hookGeo = new THREE.TorusGeometry(0.3, 0.05, 8, 32);
+                    const hookMat = new THREE.MeshStandardMaterial({
+                        color: 0xB76E79,
+                        metalness: 0.95,
+                        roughness: 0.05
+                    });
+                    const hook1 = new THREE.Mesh(hookGeo, hookMat);
+                    hook1.position.set(-1, 1, 0);
+                    group.add(hook1);
+
+                    const hook2 = new THREE.Mesh(hookGeo, hookMat);
+                    hook2.position.set(1, 1, 0);
+                    group.add(hook2);
+                    break;
+
+                case 'bracelet':
+                    // Main torus
+                    const braceletGeo = new THREE.TorusGeometry(1.5, 0.2, 16, 100);
+                    const braceletMat = new THREE.MeshStandardMaterial({
+                        color: 0xE5E4E2,
+                        metalness: 0.95,
+                        roughness: 0.05
+                    });
+                    const bracelet = new THREE.Mesh(braceletGeo, braceletMat);
+                    bracelet.rotation.x = Math.PI / 2;
+                    group.add(bracelet);
+
+                    // Gemstones
+                    const gemGeo = new THREE.SphereGeometry(0.15, 16, 16);
+                    const gemMat = new THREE.MeshStandardMaterial({
+                        color: 0x0F52BA,
+                        metalness: 0.9,
+                        roughness: 0.1,
+                        emissive: 0x0F52BA,
+                        emissiveIntensity: 0.4
+                    });
+                    for (let i = 0; i < 12; i++) {
+                        const angle = (i / 12) * Math.PI * 2;
+                        const gem = new THREE.Mesh(gemGeo, gemMat);
+                        gem.position.set(Math.cos(angle) * 1.5, 0, Math.sin(angle) * 1.5);
+                        group.add(gem);
+                    }
+                    break;
+            }
+
+            return group;
+        }
+
+        // ===== JEWELRY INTERACTION (360° ROTATION) =====
+        function setupJewelryInteraction(sceneData, container) {
+            const { jewelry } = sceneData;
+
+            container.addEventListener('mousedown', (e) => {
+                sceneData.isDragging = true;
+                sceneData.previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            container.addEventListener('mousemove', (e) => {
+                if (sceneData.isDragging) {
+                    const deltaX = e.clientX - sceneData.previousMousePosition.x;
+                    const deltaY = e.clientY - sceneData.previousMousePosition.y;
+
+                    jewelry.rotation.y += deltaX * 0.01;
+                    jewelry.rotation.x += deltaY * 0.01;
+
+                    sceneData.previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            container.addEventListener('mouseup', () => {
+                sceneData.isDragging = false;
+            });
+
+            container.addEventListener('mouseleave', () => {
+                sceneData.isDragging = false;
+            });
+
+            // Touch events for mobile
+            container.addEventListener('touchstart', (e) => {
+                sceneData.isDragging = true;
+                sceneData.previousMousePosition = {
+                    x: e.touches[0].clientX,
+                    y: e.touches[0].clientY
+                };
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                if (sceneData.isDragging) {
+                    const deltaX = e.touches[0].clientX - sceneData.previousMousePosition.x;
+                    const deltaY = e.touches[0].clientY - sceneData.previousMousePosition.y;
+
+                    jewelry.rotation.y += deltaX * 0.01;
+                    jewelry.rotation.x += deltaY * 0.01;
+
+                    sceneData.previousMousePosition = {
+                        x: e.touches[0].clientX,
+                        y: e.touches[0].clientY
+                    };
+                }
+            });
+
+            container.addEventListener('touchend', () => {
+                sceneData.isDragging = false;
+            });
+        }
+
+        // ===== SCROLL HANDLER =====
+        function onScroll() {
+            scrollY = window.pageYOffset || document.documentElement.scrollTop;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            scrollProgress = Math.min(scrollY / maxScroll, 1);
+        }
+
+        // ===== MOUSE MOVE HANDLER =====
+        function onMouseMove(event) {
+            mouseX = (event.clientX / window.innerWidth) * 2 - 1;
+            mouseY = -(event.clientY / window.innerHeight) * 2 + 1;
+        }
+
+        // ===== WINDOW RESIZE =====
+        function onWindowResize() {
+            mainCamera.aspect = window.innerWidth / window.innerHeight;
+            mainCamera.updateProjectionMatrix();
+            mainRenderer.setSize(window.innerWidth, window.innerHeight);
+
+            galleryScenes.forEach(sceneData => {
+                const { camera, renderer, container } = sceneData;
+                camera.aspect = container.clientWidth / container.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(container.clientWidth, container.clientHeight);
+            });
+        }
+
+        // ===== CUSTOM CURSOR =====
+        function setupCustomCursor() {
+            const cursor = document.getElementById('custom-cursor');
+
+            document.addEventListener('mousemove', (e) => {
+                cursor.style.left = e.clientX + 'px';
+                cursor.style.top = e.clientY + 'px';
+            });
+
+            const interactiveElements = document.querySelectorAll('a, button, .gallery-item, .jewelry-canvas');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+                el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+            });
+        }
+
+        // ===== INTERSECTION OBSERVER =====
+        function setupIntersectionObserver() {
+            const options = { threshold: 0.2 };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach((entry, index) => {
+                    if (entry.isIntersecting) {
+                        setTimeout(() => {
+                            entry.target.classList.add('visible');
+                        }, index * 100);
+                    }
+                });
+            }, options);
+
+            document.querySelectorAll('.about-content, .gallery-title, .gallery-item').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // ===== ANIMATION LOOP =====
+        function animate() {
+            requestAnimationFrame(animate);
+
+            if (!isLoaded) return;
+
+            time += 0.01;
+
+            // Hero jewelry rotation based on scroll
+            if (heroJewelry) {
+                heroJewelry.rotation.y = scrollY * 0.002;
+                heroJewelry.rotation.x = Math.sin(time) * 0.1;
+                heroJewelry.position.y = Math.sin(time * 0.5) * 0.2;
+
+                // Scale based on scroll
+                const scale = (isMobile ? 0.6 : 1) * (1 + scrollProgress * 0.5);
+                heroJewelry.scale.set(scale, scale, scale);
+            }
+
+            // Update particles
+            mainScene.children.forEach(child => {
+                if (child.userData.update) {
+                    child.userData.update(time);
+                }
+            });
+
+            // Camera parallax
+            if (!isMobile) {
+                mainCamera.position.x += (mouseX * 2 - mainCamera.position.x) * 0.05;
+                mainCamera.position.y += (mouseY * 2 - mainCamera.position.y) * 0.05;
+            }
+
+            // Render main scene
+            mainRenderer.render(mainScene, mainCamera);
+
+            // Render gallery scenes
+            galleryScenes.forEach(sceneData => {
+                const { scene, camera, renderer, jewelry, isDragging } = sceneData;
+
+                // Auto-rotate when not dragging
+                if (!isDragging) {
+                    jewelry.rotation.y += 0.005;
+                    jewelry.rotation.x = Math.sin(time * 0.5) * 0.1;
+                }
+
+                renderer.render(scene, camera);
+            });
+        }
+
+        // ===== START =====
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
