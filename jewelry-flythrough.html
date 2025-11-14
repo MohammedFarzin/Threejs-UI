@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luxury Jewelry - Camera Fly-Through Experience</title>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Cormorant+Garamond:wght@300;400;600&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --gold: #D4AF37;
+            --rose-gold: #B76E79;
+            --champagne: #F7E7CE;
+            --black: #000000;
+            --dark: #0A0A0A;
+        }
+
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            background: var(--black);
+            color: var(--champagne);
+            overflow-x: hidden;
+            cursor: none;
+        }
+
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            transition: transform 0.2s ease;
+            mix-blend-mode: difference;
+        }
+
+        .cursor-follower {
+            position: fixed;
+            width: 40px;
+            height: 40px;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: transform 0.4s ease;
+            mix-blend-mode: difference;
+        }
+
+        /* Canvas */
+        #webgl {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            z-index: 1;
+        }
+
+        /* Content */
+        .content {
+            position: relative;
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        .section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 0 10%;
+            position: relative;
+        }
+
+        /* Hero Section */
+        .hero {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(4rem, 15vw, 12rem);
+            font-weight: 900;
+            line-height: 0.9;
+            margin-bottom: 30px;
+            background: linear-gradient(135deg, var(--gold) 0%, var(--rose-gold) 50%, var(--gold) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: shimmer 4s ease-in-out infinite;
+            background-size: 200% 200%;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .hero p {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            letter-spacing: 8px;
+            text-transform: uppercase;
+            font-weight: 300;
+            opacity: 0.9;
+        }
+
+        .scroll-hint {
+            position: absolute;
+            bottom: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.9rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--gold);
+            animation: fadeUpDown 2s ease-in-out infinite;
+        }
+
+        @keyframes fadeUpDown {
+            0%, 100% { opacity: 0.4; transform: translate(-50%, 0); }
+            50% { opacity: 1; transform: translate(-50%, -10px); }
+        }
+
+        /* Jewelry Sections */
+        .jewelry-section {
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .jewelry-section.active {
+            opacity: 1;
+        }
+
+        .jewelry-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 10vw, 8rem);
+            font-weight: 900;
+            margin-bottom: 20px;
+            color: var(--gold);
+            text-shadow: 0 0 40px rgba(212, 175, 55, 0.5);
+        }
+
+        .jewelry-subtitle {
+            font-size: clamp(1.2rem, 3vw, 2rem);
+            font-weight: 300;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            margin-bottom: 30px;
+            color: var(--champagne);
+        }
+
+        .jewelry-description {
+            font-size: clamp(1rem, 2vw, 1.3rem);
+            max-width: 600px;
+            line-height: 2;
+            text-align: center;
+            color: rgba(247, 231, 206, 0.8);
+        }
+
+        .jewelry-price {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            margin-top: 30px;
+            color: var(--rose-gold);
+            font-weight: 600;
+        }
+
+        /* Final Section */
+        .final-section {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 1.5s ease;
+        }
+
+        .final-section.active {
+            opacity: 1;
+        }
+
+        .final-section h2 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(3rem, 10vw, 7rem);
+            font-weight: 900;
+            margin-bottom: 40px;
+        }
+
+        .final-section p {
+            font-size: clamp(1.2rem, 3vw, 1.8rem);
+            margin-bottom: 60px;
+            max-width: 700px;
+            line-height: 1.8;
+        }
+
+        .cta-button {
+            padding: 25px 70px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, var(--gold), var(--rose-gold));
+            color: var(--black);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.5s ease;
+            pointer-events: all;
+            font-family: 'Cormorant Garamond', serif;
+            box-shadow: 0 10px 50px rgba(212, 175, 55, 0.4);
+        }
+
+        .cta-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 20px 80px rgba(212, 175, 55, 0.6);
+        }
+
+        /* Loading */
+        .loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: var(--black);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 1s ease;
+        }
+
+        .loading.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 2px solid var(--gold);
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            letter-spacing: 6px;
+            text-transform: uppercase;
+            color: var(--gold);
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gold), var(--rose-gold));
+            z-index: 9999;
+            transform-origin: left;
+            transition: transform 0.1s ease;
+        }
+
+        /* Mobile */
+        @media (max-width: 768px) {
+            .cursor, .cursor-follower {
+                display: none;
+            }
+
+            body {
+                cursor: auto;
+            }
+
+            .section {
+                padding: 0 5%;
+            }
+
+            .jewelry-description {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading -->
+    <div class="loading">
+        <div class="loader"></div>
+        <div class="loading-text">Loading Experience</div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar"></div>
+
+    <!-- Custom Cursors -->
+    <div class="cursor"></div>
+    <div class="cursor-follower"></div>
+
+    <!-- WebGL Canvas -->
+    <canvas id="webgl"></canvas>
+
+    <!-- Content -->
+    <div class="content">
+        <!-- Hero -->
+        <div class="hero">
+            <h1>EXQUISITE</h1>
+            <p>Journey Through Luxury</p>
+            <div class="scroll-hint">Scroll to Begin</div>
+        </div>
+
+        <!-- Jewelry Sections -->
+        <div class="section jewelry-section" data-index="0">
+            <h2 class="jewelry-title">Diamond Ring</h2>
+            <p class="jewelry-subtitle">Eternal Brilliance</p>
+            <p class="jewelry-description">
+                A masterpiece of unparalleled craftsmanship. This solitaire diamond ring features
+                a flawless 3-carat diamond set in hand-forged 18K white gold.
+            </p>
+            <p class="jewelry-price">$45,000</p>
+        </div>
+
+        <div class="section jewelry-section" data-index="1">
+            <h2 class="jewelry-title">Gold Necklace</h2>
+            <p class="jewelry-subtitle">Timeless Elegance</p>
+            <p class="jewelry-description">
+                Hand-crafted 24K gold necklace featuring intricate Byzantine chain work,
+                adorned with natural rubies and emeralds.
+            </p>
+            <p class="jewelry-price">$38,500</p>
+        </div>
+
+        <div class="section jewelry-section" data-index="2">
+            <h2 class="jewelry-title">Sapphire Earrings</h2>
+            <p class="jewelry-subtitle">Royal Radiance</p>
+            <p class="jewelry-description">
+                Rare Ceylon sapphires set in rose gold with diamond halos.
+                Each stone hand-selected for exceptional color and clarity.
+            </p>
+            <p class="jewelry-price">$28,900</p>
+        </div>
+
+        <div class="section jewelry-section" data-index="3">
+            <h2 class="jewelry-title">Pearl Bracelet</h2>
+            <p class="jewelry-subtitle">Ocean's Treasure</p>
+            <p class="jewelry-description">
+                Lustrous South Sea pearls perfectly matched and strung on platinum wire,
+                secured with a diamond-encrusted clasp.
+            </p>
+            <p class="jewelry-price">$32,000</p>
+        </div>
+
+        <div class="section jewelry-section" data-index="4">
+            <h2 class="jewelry-title">Emerald Ring</h2>
+            <p class="jewelry-subtitle">Verdant Luxury</p>
+            <p class="jewelry-description">
+                Colombian emerald of exceptional clarity, surrounded by brilliant-cut diamonds
+                in a vintage-inspired yellow gold setting.
+            </p>
+            <p class="jewelry-price">$52,000</p>
+        </div>
+
+        <div class="section jewelry-section" data-index="5">
+            <h2 class="jewelry-title">Ruby Necklace</h2>
+            <p class="jewelry-subtitle">Crimson Passion</p>
+            <p class="jewelry-description">
+                Burmese pigeon blood ruby pendant, one of nature's rarest gems,
+                set in platinum with a graduated diamond necklace.
+            </p>
+            <p class="jewelry-price">$68,500</p>
+        </div>
+
+        <!-- Final Section -->
+        <div class="final-section">
+            <h2>Experience <span style="color: var(--gold);">Luxury</span></h2>
+            <p>
+                Visit our private atelier to explore our exclusive collection
+                and discover your perfect piece of timeless elegance.
+            </p>
+            <button class="cta-button">Book Private Viewing</button>
+        </div>
+    </div>
+
+    <!-- Three.js -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.150.0/build/three.min.js"></script>
+
+    <script>
+        // ===== GLOBAL VARIABLES =====
+        let scene, camera, renderer;
+        let jewelryPieces = [];
+        let particleSystems = [];
+        let scrollY = 0;
+        let currentScroll = 0;
+        let targetScroll = 0;
+        let time = 0;
+
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        // Camera path waypoints
+        const cameraPath = [
+            { position: { x: 0, y: 0, z: 20 }, rotation: { x: 0, y: 0, z: 0 } },
+            { position: { x: 5, y: 2, z: 0 }, rotation: { x: -0.1, y: 0.3, z: 0 } },
+            { position: { x: -5, y: -2, z: -20 }, rotation: { x: 0.1, y: -0.3, z: 0 } },
+            { position: { x: 3, y: 3, z: -40 }, rotation: { x: -0.15, y: 0.2, z: 0 } },
+            { position: { x: -3, y: -3, z: -60 }, rotation: { x: 0.15, y: -0.2, z: 0 } },
+            { position: { x: 0, y: 0, z: -80 }, rotation: { x: 0, y: 0, z: 0 } },
+            { position: { x: 0, y: 5, z: -100 }, rotation: { x: -0.2, y: 0, z: 0 } },
+            { position: { x: 0, y: 0, z: -120 }, rotation: { x: 0, y: 0, z: 0 } }
+        ];
+
+        // Jewelry positions
+        const jewelryPositions = [
+            { x: 5, y: 2, z: -5 },      // Diamond Ring
+            { x: -6, y: -2, z: -25 },   // Gold Necklace
+            { x: 4, y: 3, z: -45 },     // Sapphire Earrings
+            { x: -4, y: -3, z: -65 },   // Pearl Bracelet
+            { x: 0, y: 0, z: -85 },     // Emerald Ring
+            { x: 0, y: 2, z: -105 }     // Ruby Necklace
+        ];
+
+        // ===== INITIALIZATION =====
+        function init() {
+            console.log('Initializing Camera Fly-Through...');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.fog = new THREE.FogExp2(0x000000, 0.008);
+
+            // Camera
+            camera = new THREE.PerspectiveCamera(
+                75,
+                window.innerWidth / window.innerHeight,
+                0.1,
+                1000
+            );
+            camera.position.set(
+                cameraPath[0].position.x,
+                cameraPath[0].position.y,
+                cameraPath[0].position.z
+            );
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({
+                canvas: document.getElementById('webgl'),
+                antialias: true,
+                alpha: false
+            });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.setClearColor(0x000000);
+
+            // Lighting
+            setupLighting();
+
+            // Create jewelry pieces
+            createJewelryPieces();
+
+            // Create ambient particles
+            createAmbientParticles();
+
+            // Events
+            window.addEventListener('scroll', onScroll);
+            window.addEventListener('resize', onResize);
+
+            if (!isMobile) {
+                setupCustomCursor();
+            }
+
+            // CTA button
+            document.querySelector('.cta-button').addEventListener('click', () => {
+                alert('Thank you for your interest! Our concierge will contact you shortly. ✨');
+            });
+
+            // Start animation
+            animate();
+
+            // Hide loading
+            setTimeout(() => {
+                document.querySelector('.loading').classList.add('hidden');
+            }, 2000);
+
+            console.log('✓ Fly-Through Experience Ready!');
+        }
+
+        // ===== LIGHTING =====
+        function setupLighting() {
+            // Ambient
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+
+            // Spotlights on jewelry
+            jewelryPositions.forEach((pos, i) => {
+                const spotlight = new THREE.SpotLight(
+                    i % 2 === 0 ? 0xD4AF37 : 0xB76E79,
+                    2,
+                    30,
+                    Math.PI / 6,
+                    0.5,
+                    1
+                );
+                spotlight.position.set(pos.x + 5, pos.y + 10, pos.z + 5);
+                spotlight.target.position.set(pos.x, pos.y, pos.z);
+                scene.add(spotlight);
+                scene.add(spotlight.target);
+            });
+
+            // Point lights
+            const pointLight1 = new THREE.PointLight(0xD4AF37, 1, 50);
+            pointLight1.position.set(10, 10, 10);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xB76E79, 1, 50);
+            pointLight2.position.set(-10, -10, -50);
+            scene.add(pointLight2);
+        }
+
+        // ===== CREATE JEWELRY PIECES =====
+        function createJewelryPieces() {
+            const jewelryTypes = [
+                'ring',        // Diamond Ring
+                'necklace',    // Gold Necklace
+                'earrings',    // Sapphire Earrings
+                'bracelet',    // Pearl Bracelet
+                'ring2',       // Emerald Ring
+                'necklace2'    // Ruby Necklace
+            ];
+
+            jewelryTypes.forEach((type, index) => {
+                const group = new THREE.Group();
+                const pos = jewelryPositions[index];
+
+                switch(type) {
+                    case 'ring':
+                        // Large Diamond
+                        const diamondGeo = new THREE.OctahedronGeometry(2, 0);
+                        const diamondMat = new THREE.MeshStandardMaterial({
+                            color: 0xffffff,
+                            metalness: 0.9,
+                            roughness: 0.05,
+                            emissive: 0xD4AF37,
+                            emissiveIntensity: 0.3
+                        });
+                        const diamond = new THREE.Mesh(diamondGeo, diamondMat);
+                        group.add(diamond);
+
+                        // Ring band
+                        const ringGeo = new THREE.TorusGeometry(3, 0.4, 16, 100);
+                        const ringMat = new THREE.MeshStandardMaterial({
+                            color: 0xC0C0C0,
+                            metalness: 0.95,
+                            roughness: 0.05
+                        });
+                        const ring = new THREE.Mesh(ringGeo, ringMat);
+                        ring.rotation.x = Math.PI / 2;
+                        ring.position.y = -1.5;
+                        group.add(ring);
+                        break;
+
+                    case 'necklace':
+                        // Chain
+                        const chainGeo = new THREE.TorusGeometry(3, 0.1, 8, 100);
+                        const chainMat = new THREE.MeshStandardMaterial({
+                            color: 0xD4AF37,
+                            metalness: 0.95,
+                            roughness: 0.05
+                        });
+                        const chain = new THREE.Mesh(chainGeo, chainMat);
+                        chain.rotation.x = Math.PI / 2;
+                        group.add(chain);
+
+                        // Pendant stones
+                        for (let i = 0; i < 5; i++) {
+                            const stoneGeo = new THREE.SphereGeometry(0.3, 16, 16);
+                            const stoneMat = new THREE.MeshStandardMaterial({
+                                color: i % 2 === 0 ? 0xE0115F : 0x50C878,
+                                metalness: 0.9,
+                                roughness: 0.1,
+                                emissive: i % 2 === 0 ? 0xE0115F : 0x50C878,
+                                emissiveIntensity: 0.4
+                            });
+                            const stone = new THREE.Mesh(stoneGeo, stoneMat);
+                            const angle = (i / 5) * Math.PI - Math.PI / 2;
+                            stone.position.set(0, Math.sin(angle) * 3 - 1, Math.cos(angle) * 3);
+                            group.add(stone);
+                        }
+                        break;
+
+                    case 'earrings':
+                        // Two sapphire drops
+                        [-1.5, 1.5].forEach(xPos => {
+                            const sapphireGeo = new THREE.OctahedronGeometry(0.8, 0);
+                            const sapphireMat = new THREE.MeshStandardMaterial({
+                                color: 0x0F52BA,
+                                metalness: 0.9,
+                                roughness: 0.1,
+                                emissive: 0x0F52BA,
+                                emissiveIntensity: 0.4
+                            });
+                            const sapphire = new THREE.Mesh(sapphireGeo, sapphireMat);
+                            sapphire.position.x = xPos;
+                            group.add(sapphire);
+
+                            // Diamond halos
+                            const haloGeo = new THREE.TorusGeometry(1, 0.1, 8, 32);
+                            const haloMat = new THREE.MeshStandardMaterial({
+                                color: 0xffffff,
+                                metalness: 0.9,
+                                roughness: 0.1
+                            });
+                            const halo = new THREE.Mesh(haloGeo, haloMat);
+                            halo.position.x = xPos;
+                            group.add(halo);
+                        });
+                        break;
+
+                    case 'bracelet':
+                        // Pearl strand
+                        const braceletGeo = new THREE.TorusGeometry(2.5, 0.3, 16, 100);
+                        const braceletMat = new THREE.MeshStandardMaterial({
+                            color: 0xE5E4E2,
+                            metalness: 0.95,
+                            roughness: 0.05
+                        });
+                        const bracelet = new THREE.Mesh(braceletGeo, braceletMat);
+                        bracelet.rotation.x = Math.PI / 2;
+                        group.add(bracelet);
+
+                        // Pearls
+                        for (let i = 0; i < 12; i++) {
+                            const angle = (i / 12) * Math.PI * 2;
+                            const pearlGeo = new THREE.SphereGeometry(0.4, 16, 16);
+                            const pearlMat = new THREE.MeshStandardMaterial({
+                                color: 0xF0EAD6,
+                                metalness: 0.3,
+                                roughness: 0.2
+                            });
+                            const pearl = new THREE.Mesh(pearlGeo, pearlMat);
+                            pearl.position.set(
+                                Math.cos(angle) * 2.5,
+                                0,
+                                Math.sin(angle) * 2.5
+                            );
+                            group.add(pearl);
+                        }
+                        break;
+
+                    case 'ring2':
+                        // Emerald center stone
+                        const emeraldGeo = new THREE.BoxGeometry(2, 2.5, 1.5);
+                        const emeraldMat = new THREE.MeshStandardMaterial({
+                            color: 0x50C878,
+                            metalness: 0.9,
+                            roughness: 0.1,
+                            emissive: 0x50C878,
+                            emissiveIntensity: 0.4
+                        });
+                        const emerald = new THREE.Mesh(emeraldGeo, emeraldMat);
+                        group.add(emerald);
+
+                        // Ring band
+                        const ring2Geo = new THREE.TorusGeometry(3.5, 0.4, 16, 100);
+                        const ring2Mat = new THREE.MeshStandardMaterial({
+                            color: 0xD4AF37,
+                            metalness: 0.95,
+                            roughness: 0.05
+                        });
+                        const ring2 = new THREE.Mesh(ring2Geo, ring2Mat);
+                        ring2.rotation.x = Math.PI / 2;
+                        ring2.position.y = -1.5;
+                        group.add(ring2);
+                        break;
+
+                    case 'necklace2':
+                        // Ruby pendant
+                        const rubyGeo = new THREE.OctahedronGeometry(1.5, 0);
+                        const rubyMat = new THREE.MeshStandardMaterial({
+                            color: 0xE0115F,
+                            metalness: 0.9,
+                            roughness: 0.1,
+                            emissive: 0xE0115F,
+                            emissiveIntensity: 0.5
+                        });
+                        const ruby = new THREE.Mesh(rubyGeo, rubyMat);
+                        group.add(ruby);
+
+                        // Diamond chain
+                        const chain2Geo = new THREE.TorusGeometry(3, 0.08, 8, 100);
+                        const chain2Mat = new THREE.MeshStandardMaterial({
+                            color: 0xE5E4E2,
+                            metalness: 0.95,
+                            roughness: 0.05
+                        });
+                        const chain2 = new THREE.Mesh(chain2Geo, chain2Mat);
+                        chain2.rotation.x = Math.PI / 2;
+                        group.add(chain2);
+                        break;
+                }
+
+                group.position.set(pos.x, pos.y, pos.z);
+                group.userData.originalPosition = { ...pos };
+                group.userData.index = index;
+                scene.add(group);
+                jewelryPieces.push(group);
+
+                // Add particle system for each jewelry
+                createJewelryParticles(pos);
+            });
+        }
+
+        // ===== CREATE JEWELRY PARTICLES =====
+        function createJewelryParticles(position) {
+            const particleCount = isMobile ? 100 : 300;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                const radius = 5 + Math.random() * 3;
+                const theta = Math.random() * Math.PI * 2;
+                const phi = Math.random() * Math.PI;
+
+                positions[i * 3] = position.x + radius * Math.sin(phi) * Math.cos(theta);
+                positions[i * 3 + 1] = position.y + radius * Math.sin(phi) * Math.sin(theta);
+                positions[i * 3 + 2] = position.z + radius * Math.cos(phi);
+
+                // Gold particles
+                colors[i * 3] = 0.831;
+                colors[i * 3 + 1] = 0.686;
+                colors[i * 3 + 2] = 0.216;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: isMobile ? 0.05 : 0.08,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.6,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+            particleSystems.push({ particles, center: position });
+        }
+
+        // ===== CREATE AMBIENT PARTICLES =====
+        function createAmbientParticles() {
+            const particleCount = isMobile ? 500 : 2000;
+            const geometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(particleCount * 3);
+            const colors = new Float32Array(particleCount * 3);
+
+            for (let i = 0; i < particleCount; i++) {
+                positions[i * 3] = (Math.random() - 0.5) * 200;
+                positions[i * 3 + 1] = (Math.random() - 0.5) * 200;
+                positions[i * 3 + 2] = (Math.random() - 0.5) * 200 - 60;
+
+                const t = Math.random();
+                colors[i * 3] = 0.831 + (0.969 - 0.831) * t;
+                colors[i * 3 + 1] = 0.686 + (0.906 - 0.686) * t;
+                colors[i * 3 + 2] = 0.216 + (0.808 - 0.216) * t;
+            }
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const material = new THREE.PointsMaterial({
+                size: isMobile ? 0.5 : 1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.3,
+                blending: THREE.AdditiveBlending
+            });
+
+            const particles = new THREE.Points(geometry, material);
+            scene.add(particles);
+
+            particles.userData.isAmbient = true;
+        }
+
+        // ===== SCROLL HANDLER =====
+        function onScroll() {
+            scrollY = window.pageYOffset;
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            const scrollProgress = scrollY / maxScroll;
+
+            // Update progress bar
+            document.querySelector('.progress-bar').style.transform =
+                `scaleX(${scrollProgress})`;
+
+            // Update text sections visibility
+            const sections = document.querySelectorAll('.jewelry-section');
+            const sectionHeight = window.innerHeight;
+            const currentSection = Math.floor(scrollY / sectionHeight) - 1;
+
+            sections.forEach((section, index) => {
+                if (index === currentSection) {
+                    section.classList.add('active');
+                } else {
+                    section.classList.remove('active');
+                }
+            });
+
+            // Final section
+            const finalSection = document.querySelector('.final-section');
+            if (scrollProgress > 0.9) {
+                finalSection.classList.add('active');
+            } else {
+                finalSection.classList.remove('active');
+            }
+        }
+
+        // ===== RESIZE HANDLER =====
+        function onResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        // ===== CUSTOM CURSOR =====
+        function setupCustomCursor() {
+            const cursor = document.querySelector('.cursor');
+            const follower = document.querySelector('.cursor-follower');
+
+            let mouseX = 0, mouseY = 0;
+            let followerX = 0, followerY = 0;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                cursor.style.transform = `translate(${mouseX - 10}px, ${mouseY - 10}px)`;
+            });
+
+            function animateFollower() {
+                followerX += (mouseX - followerX) * 0.1;
+                followerY += (mouseY - followerY) * 0.1;
+                follower.style.transform =
+                    `translate(${followerX - 20}px, ${followerY - 20}px)`;
+                requestAnimationFrame(animateFollower);
+            }
+            animateFollower();
+        }
+
+        // ===== CAMERA INTERPOLATION =====
+        function interpolateCameraPosition(progress) {
+            const pathLength = cameraPath.length - 1;
+            const scaledProgress = progress * pathLength;
+            const index = Math.floor(scaledProgress);
+            const nextIndex = Math.min(index + 1, pathLength);
+            const t = scaledProgress - index;
+
+            // Smooth easing
+            const easedT = t < 0.5
+                ? 4 * t * t * t
+                : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+            const current = cameraPath[index];
+            const next = cameraPath[nextIndex];
+
+            return {
+                position: {
+                    x: current.position.x + (next.position.x - current.position.x) * easedT,
+                    y: current.position.y + (next.position.y - current.position.y) * easedT,
+                    z: current.position.z + (next.position.z - current.position.z) * easedT
+                },
+                rotation: {
+                    x: current.rotation.x + (next.rotation.x - current.rotation.x) * easedT,
+                    y: current.rotation.y + (next.rotation.y - current.rotation.y) * easedT,
+                    z: current.rotation.z + (next.rotation.z - current.rotation.z) * easedT
+                }
+            };
+        }
+
+        // ===== ANIMATION LOOP =====
+        function animate() {
+            requestAnimationFrame(animate);
+
+            time += 0.01;
+
+            // Smooth scroll
+            const maxScroll = document.body.scrollHeight - window.innerHeight;
+            targetScroll = scrollY / maxScroll;
+            currentScroll += (targetScroll - currentScroll) * 0.05;
+
+            // Update camera position based on scroll
+            const cameraData = interpolateCameraPosition(currentScroll);
+            camera.position.set(
+                cameraData.position.x,
+                cameraData.position.y,
+                cameraData.position.z
+            );
+            camera.rotation.set(
+                cameraData.rotation.x,
+                cameraData.rotation.y,
+                cameraData.rotation.z
+            );
+
+            // Rotate jewelry pieces
+            jewelryPieces.forEach((jewelry, index) => {
+                jewelry.rotation.y = time * 0.3;
+                jewelry.rotation.x = Math.sin(time + index) * 0.1;
+
+                // Gentle floating
+                const originalY = jewelry.userData.originalPosition.y;
+                jewelry.position.y = originalY + Math.sin(time + index * 2) * 0.3;
+            });
+
+            // Animate jewelry particles
+            particleSystems.forEach(({ particles, center }) => {
+                particles.rotation.y = time * 0.1;
+                const positions = particles.geometry.attributes.position.array;
+
+                for (let i = 0; i < positions.length / 3; i++) {
+                    const i3 = i * 3;
+                    const angle = time + i * 0.1;
+                    positions[i3] += Math.sin(angle) * 0.01;
+                    positions[i3 + 1] += Math.cos(angle) * 0.01;
+                }
+                particles.geometry.attributes.position.needsUpdate = true;
+            });
+
+            // Animate ambient particles
+            scene.children.forEach(child => {
+                if (child.userData.isAmbient) {
+                    child.rotation.y = time * 0.02;
+                    const positions = child.geometry.attributes.position.array;
+                    for (let i = 0; i < positions.length / 3; i++) {
+                        const i3 = i * 3;
+                        positions[i3 + 1] += Math.sin(time + i * 0.05) * 0.02;
+                    }
+                    child.geometry.attributes.position.needsUpdate = true;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // ===== START =====
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
