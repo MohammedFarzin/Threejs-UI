@@ -5,9 +5,29 @@ import { useFrame } from '@react-three/fiber';
 import { Mesh, MeshStandardMaterial } from 'three';
 import { MeshTransmissionMaterial } from '@react-three/drei';
 
-export default function JewelryModel() {
+interface JewelryModelProps {
+  material?: 'yellow-gold' | 'rose-gold' | 'white-gold';
+}
+
+export default function JewelryModel({ material = 'yellow-gold' }: JewelryModelProps) {
   const ringRef = useRef<Mesh>(null);
   const gemRef = useRef<Mesh>(null);
+
+  // Material colors
+  const materialColors = {
+    'yellow-gold': '#D4AF37',
+    'rose-gold': '#E0BFB8',
+    'white-gold': '#E8E8E8',
+  };
+
+  const accentColors = {
+    'yellow-gold': '#FFC107',
+    'rose-gold': '#F5C7B8',
+    'white-gold': '#F0F0F0',
+  };
+
+  const goldColor = materialColors[material];
+  const accentColor = accentColors[material];
 
   // Gentle floating animation
   useFrame((state) => {
@@ -30,7 +50,7 @@ export default function JewelryModel() {
       <mesh ref={ringRef} castShadow receiveShadow>
         <torusGeometry args={[1, 0.15, 32, 100]} />
         <meshStandardMaterial
-          color="#D4AF37"
+          color={goldColor}
           metalness={0.9}
           roughness={0.1}
           envMapIntensity={1.5}
@@ -41,7 +61,7 @@ export default function JewelryModel() {
       <mesh position={[0, 0.8, 0]} castShadow>
         <cylinderGeometry args={[0.3, 0.4, 0.3, 32]} />
         <meshStandardMaterial
-          color="#D4AF37"
+          color={goldColor}
           metalness={0.9}
           roughness={0.1}
           envMapIntensity={1.5}
@@ -73,7 +93,7 @@ export default function JewelryModel() {
           <mesh key={i} position={[x, 0, z]} castShadow>
             <sphereGeometry args={[0.08, 16, 16]} />
             <meshStandardMaterial
-              color="#FFC107"
+              color={accentColor}
               metalness={1}
               roughness={0.2}
               envMapIntensity={1}

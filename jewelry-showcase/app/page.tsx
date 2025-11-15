@@ -1,5 +1,11 @@
+'use client';
+
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import Header from '@/components/Layout/Header';
+import CallbackModal from '@/components/Forms/CallbackModal';
+import { getFeaturedProducts } from '@/data/products';
 
 // Dynamically import 3D components to avoid SSR issues
 const Hero3D = dynamic(() => import('@/components/Hero/Hero3D'), {
@@ -15,9 +21,19 @@ const Hero3D = dynamic(() => import('@/components/Hero/Hero3D'), {
 });
 
 export default function Home() {
+  const router = useRouter();
+  const featuredProducts = getFeaturedProducts();
+  const [isCallbackModalOpen, setIsCallbackModalOpen] = useState(false);
+
   return (
     <main className="relative">
-      <Header />
+      <Header onInquireClick={() => setIsCallbackModalOpen(true)} />
+
+      {/* Callback Modal */}
+      <CallbackModal
+        isOpen={isCallbackModalOpen}
+        onClose={() => setIsCallbackModalOpen(false)}
+      />
 
       {/* Hero Section with 3D */}
       <Hero3D />
@@ -142,16 +158,21 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Product Grid Placeholder */}
+          {/* Product Grid */}
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
+            {featuredProducts.map((product) => (
               <div
-                key={item}
+                key={product.id}
+                onClick={() => router.push(`/products/${product.id}`)}
                 className="group cursor-pointer"
               >
                 <div className="relative aspect-square bg-gradient-to-br from-gold-100 to-green-100 rounded-2xl mb-4 overflow-hidden">
                   <div className="absolute inset-0 flex items-center justify-center opacity-50 group-hover:opacity-70 transition-opacity">
-                    <div className="text-6xl">💎</div>
+                    <div className="text-6xl">
+                      {product.category === 'ring' && '💍'}
+                      {product.category === 'necklace' && '📿'}
+                      {product.category === 'bracelet' && '⚜️'}
+                    </div>
                   </div>
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-center justify-center">
@@ -159,12 +180,19 @@ export default function Home() {
                       View Details
                     </button>
                   </div>
+                  {product.isFeatured && (
+                    <div className="absolute top-4 right-4 bg-gold-500 text-white px-3 py-1 rounded-full text-sm font-semibold">
+                      Featured
+                    </div>
+                  )}
                 </div>
                 <h3 className="text-xl font-bold text-gray-900 mb-2">
-                  Eternal Elegance Ring
+                  {product.name}
                 </h3>
-                <p className="text-gray-600 mb-2">22K Gold</p>
-                <p className="text-gold-600 font-bold text-lg">₹{45000 + item * 5000}</p>
+                <p className="text-gray-600 mb-2">{product.specifications.metal}</p>
+                <p className="text-gold-600 font-bold text-lg">
+                  ₹{product.price.toLocaleString('en-IN')}
+                </p>
               </div>
             ))}
           </div>
@@ -182,10 +210,16 @@ export default function Home() {
             or create your perfect piece.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="px-8 py-4 bg-white text-green-600 rounded-full font-semibold text-lg hover:bg-gold-50 transition-all duration-300 hover:scale-105">
+            <button
+              onClick={() => setIsCallbackModalOpen(true)}
+              className="px-8 py-4 bg-white text-green-600 rounded-full font-semibold text-lg hover:bg-gold-50 transition-all duration-300 hover:scale-105"
+            >
               Book Consultation
             </button>
-            <button className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white/10 transition-all duration-300">
+            <button
+              onClick={() => setIsCallbackModalOpen(true)}
+              className="px-8 py-4 bg-transparent border-2 border-white text-white rounded-full font-semibold text-lg hover:bg-white/10 transition-all duration-300"
+            >
               Request Callback
             </button>
           </div>

@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
-export default function Header() {
+interface HeaderProps {
+  onInquireClick?: () => void;
+}
+
+export default function Header({ onInquireClick }: HeaderProps = {}) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -57,6 +61,7 @@ export default function Header() {
 
           {/* CTA Button */}
           <button
+            onClick={onInquireClick}
             className={`px-6 py-2 rounded-full font-semibold transition-all duration-300 hover:scale-105 ${
               isScrolled
                 ? 'bg-gold-500 text-white hover:bg-gold-600'
