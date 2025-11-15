@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Journey - Interactive Story</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Georgia', serif;
+            background: #000;
+            color: #fff;
+            overflow-x: hidden;
+        }
+
+        .scene {
+            position: relative;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .text-overlay {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 2rem;
+            max-width: 800px;
+        }
+
+        .text-overlay h2 {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            opacity: 0;
+        }
+
+        .text-overlay p {
+            font-size: 1.5rem;
+            line-height: 1.8;
+            opacity: 0;
+        }
+
+        /* Scene specific styles */
+        #scene1 { background: linear-gradient(to bottom, #0a0e27, #1a1f3a); }
+        #scene2 { background: linear-gradient(to bottom, #1a1f3a, #2d3561); }
+        #scene3 { background: linear-gradient(to bottom, #2d3561, #4a5899); }
+        #scene4 { background: linear-gradient(to bottom, #4a5899, #6b7fc9); }
+        #scene5 { background: linear-gradient(to bottom, #6b7fc9, #8fa3e3); }
+
+        .panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .panel-content {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            padding: 3rem;
+            max-width: 900px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .panel-content h1 {
+            font-size: 5rem;
+            margin-bottom: 2rem;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+        }
+
+        .panel-content p {
+            font-size: 1.8rem;
+            line-height: 2;
+        }
+
+        .scroll-hint {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.2rem;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, 0); }
+            50% { transform: translate(-50%, -20px); }
+        }
+
+        .parallax-bg {
+            position: absolute;
+            width: 100%;
+            height: 120%;
+            background-size: cover;
+            background-position: center;
+        }
+
+        .foreground {
+            z-index: 3;
+        }
+
+        .midground {
+            z-index: 2;
+        }
+
+        .background {
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Landing Panel -->
+    <div class="panel" id="landing">
+        <div class="panel-content">
+            <h1>THE JOURNEY</h1>
+            <p>An interactive story</p>
+            <p style="font-size: 1.2rem; margin-top: 2rem; opacity: 0.7;">Scroll to begin</p>
+        </div>
+        <div class="scroll-hint">↓ Scroll Down ↓</div>
+    </div>
+
+    <!-- Scene 1: The Beginning -->
+    <div class="scene" id="scene1">
+        <div class="parallax-bg background" style="background: linear-gradient(to bottom, #1a1a2e, #16213e);"></div>
+        <div class="text-overlay">
+            <h2>Chapter 1</h2>
+            <p>Under the cover of night, a journey begins. The moon hangs low, casting silver light across the water.</p>
+        </div>
+    </div>
+
+    <!-- Scene 2: The Departure -->
+    <div class="scene" id="scene2">
+        <div class="parallax-bg midground" style="background: linear-gradient(to bottom, #16213e, #0f3460);"></div>
+        <div class="text-overlay">
+            <h2>The Departure</h2>
+            <p>Leaving everything behind. The shore fades into darkness as we move forward into the unknown.</p>
+        </div>
+    </div>
+
+    <!-- Scene 3: The Storm -->
+    <div class="scene" id="scene3">
+        <div class="parallax-bg background" style="background: linear-gradient(to bottom, #0f3460, #533483);"></div>
+        <div class="text-overlay">
+            <h2>The Storm</h2>
+            <p>Waves crash against the boat. Thunder roars. But hope remains unbroken.</p>
+        </div>
+    </div>
+
+    <!-- Scene 4: The Calm -->
+    <div class="scene" id="scene4">
+        <div class="parallax-bg midground" style="background: linear-gradient(to bottom, #533483, #e94560);"></div>
+        <div class="text-overlay">
+            <h2>The Calm</h2>
+            <p>After the storm, stillness. The sun breaks through the clouds, painting the sky in gold.</p>
+        </div>
+    </div>
+
+    <!-- Scene 5: The Arrival -->
+    <div class="scene" id="scene5">
+        <div class="parallax-bg foreground" style="background: linear-gradient(to bottom, #e94560, #f39c12);"></div>
+        <div class="text-overlay">
+            <h2>New Horizons</h2>
+            <p>Land appears on the horizon. A new beginning. A new home. The journey continues.</p>
+        </div>
+    </div>
+
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        // Landing panel fade out
+        gsap.to("#landing", {
+            scrollTrigger: {
+                trigger: "#landing",
+                start: "top top",
+                end: "bottom top",
+                scrub: true
+            },
+            opacity: 0,
+            y: -100
+        });
+
+        // Animate each scene
+        const scenes = document.querySelectorAll('.scene');
+
+        scenes.forEach((scene, index) => {
+            const title = scene.querySelector('h2');
+            const text = scene.querySelector('p');
+            const bg = scene.querySelector('.parallax-bg');
+
+            // Text animations
+            gsap.fromTo(title,
+                { opacity: 0, y: 50 },
+                {
+                    scrollTrigger: {
+                        trigger: scene,
+                        start: "top 80%",
+                        end: "top 20%",
+                        scrub: 1
+                    },
+                    opacity: 1,
+                    y: 0
+                }
+            );
+
+            gsap.fromTo(text,
+                { opacity: 0, y: 30 },
+                {
+                    scrollTrigger: {
+                        trigger: scene,
+                        start: "top 70%",
+                        end: "top 30%",
+                        scrub: 1
+                    },
+                    opacity: 1,
+                    y: 0
+                }
+            );
+
+            // Parallax backgrounds
+            if (bg) {
+                gsap.to(bg, {
+                    scrollTrigger: {
+                        trigger: scene,
+                        start: "top bottom",
+                        end: "bottom top",
+                        scrub: true
+                    },
+                    y: -100
+                });
+            }
+
+            // Fade out when scrolling past
+            gsap.to(scene.querySelector('.text-overlay'), {
+                scrollTrigger: {
+                    trigger: scene,
+                    start: "center top",
+                    end: "bottom top",
+                    scrub: true
+                },
+                opacity: 0,
+                y: -50
+            });
+        });
+
+        // Hide scroll hint after scrolling
+        gsap.to(".scroll-hint", {
+            scrollTrigger: {
+                trigger: "#scene1",
+                start: "top 80%",
+                scrub: true
+            },
+            opacity: 0
+        });
+    </script>
+</body>
+</html>
